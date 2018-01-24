@@ -1,21 +1,48 @@
 let test = document.querySelector('#test');
 let testButton = document.querySelector('#test-button');
-let timerStart = false;
+let resetButton = document.querySelector('#reset');
+let running = false;
 
-testButton.addEventListener('click', function(e) {
-    let startTime = Math.floor(performance.now());
-    if (timerStart) {return}
-    timerStart = true;
-    let secondsTimer = setInterval(() => {
-        let currentTime = Math.floor(performance.now());
-        let elapsedTime = Math.floor((startTime - currentTime) / 100);
-        if (Math.round(elapsedTime) == elapsedTime) {
-            elapsedTime = (elapsedTime / 10) + 10;
-            if (elapsedTime < 0) {
-                elapsedTime += 10;
-            }
-            test.textContent = elapsedTime.toFixed(1) + ' seconds';
+let minutes = 3
+let seconds = 0;
+let currentTime;
+let timer;
+let pause;
+
+testButton.addEventListener('click', () => {
+    if (!running) {
+        startTimer();
+    } else {
+        clearInterval(timer);
+        running = false;
+        pause = true;
+    }
+});
+
+function startTimer() {
+    running = true;
+    
+    if (!pause) {
+        seconds--;
+    }
+    timer = setInterval(() => {
+        if (minutes == 0 && seconds == 0) {
+            clearInterval(timer);
         }
-    }, 50)
+        if (seconds < 0) {
+            seconds = 9;
+            minutes--;
+        }
+        test.textContent = minutes + ' minutes, ' + seconds + ' seconds.'
+        seconds--;
+    }, 1000);
+}
+
+resetButton.addEventListener('click', () => {
+    clearInterval(timer);
+    minutes = 3;
+    seconds = 0;
+    test.textContent = minutes + ' minutes, ' + seconds + ' seconds.';
+    running = false;
 });
 
