@@ -2,6 +2,13 @@ let test = document.querySelector('#test');
 let testButton = document.querySelector('#test-button');
 let resetButton = document.querySelector('#reset');
 let running = false;
+let work = document.querySelector('#work');
+let workSession = work.querySelector('p');
+let workButtons = work.querySelectorAll('button');
+
+let workTimer = 25;
+let breakTimer = 5;
+let longBreak = 15;
 
 let minutes = 25
 let seconds = 0;
@@ -17,6 +24,7 @@ test.textContent = minutesDisplay + ':' + secondsDisplay;
 testButton.addEventListener('click', () => {
     if (!running) {
         startTimer();
+        pause = false;
     } else {
         clearInterval(timer);
         running = false;
@@ -56,7 +64,7 @@ function startTimer() {
 
 resetButton.addEventListener('click', () => {
     clearInterval(timer);
-    minutes = 25;
+    minutes = workTimer;
     seconds = 0;
 
     if (minutes < 10) {
@@ -75,3 +83,44 @@ resetButton.addEventListener('click', () => {
     running = false;
 });
 
+workButtons.forEach(position => {
+    position.addEventListener('click', function(e) {
+        increment(e.target.getAttribute('class'));
+        
+    });
+});
+
+function increment(position) {
+    let button = document.getElementsByClassName(position)[0];
+    if (position == 'up') {
+        if (button.parentNode.id == 'work') {
+            workTimer++;
+            workSession.textContent = workTimer;
+            if (!running) {
+                minutes = workTimer;
+                if (minutes < 10) {
+                    minutesDisplay = '0' + minutes;
+                } else {
+                    minutesDisplay = minutes;
+                }
+                test.textContent = minutesDisplay + ':' + secondsDisplay;
+            }
+        }
+    }
+
+    if (position == 'down') {
+        if (button.parentNode.id == 'work') {
+            workTimer--;
+            workSession.textContent = workTimer;
+            if (!running) {
+                minutes = workTimer;
+                if (minutes < 10) {
+                    minutesDisplay = '0' + minutes;
+                } else {
+                    minutesDisplay = minutes;
+                }
+                test.textContent = minutesDisplay + ':' + secondsDisplay;
+            }
+        }
+    }
+} 
