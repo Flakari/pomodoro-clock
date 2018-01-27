@@ -32,9 +32,9 @@ let totalCounter = 0;
 let sessionAmt = 0;
 let minutes = 25
 let seconds = 0;
-let currentTime;
 let timer;
 let pause;
+let sessionFinished = false;
 
 let minutesDisplay = minutes;
 let secondsDisplay = '00';
@@ -42,6 +42,10 @@ let secondsDisplay = '00';
 timerDisplay.textContent = minutesDisplay + ':' + secondsDisplay; 
 
 playPause.addEventListener('click', () => {
+    if (sessionFinished) {
+        return;
+    }
+    
     if (!running) {
         startTimer();
         pause = false;
@@ -57,7 +61,7 @@ playPause.addEventListener('click', () => {
 function startTimer() {
     if (newSession) {
         minutes = workTimer;
-        minuteCount += workTimer;
+        minuteCount = workTimer;
     }
     
     running = true;
@@ -75,7 +79,6 @@ function startTimer() {
                     breakCount = longBreak;
                     seconds = 0;
                     sessionAmt = 0;
-                    newSession = true;
                     dataCounter('work');
                 } else {
                     working = false
@@ -88,8 +91,11 @@ function startTimer() {
             } else if (!working) {
                 if (sessionAmt == 0) {
                     clearInterval(timer);
+                    newSession = true;
+                    running = true;
                     minutes = 0;
                     seconds = 0;
+                    sessionFinished = true;
                     dataCounter('break');
                     playPause.textContent = "Start";
                 } else {
@@ -102,7 +108,7 @@ function startTimer() {
             }
         }
         if (seconds < 0) {
-            seconds = 9;
+            seconds = 59;
             minutes--;
         }
         if (minutes < 10) {
@@ -141,6 +147,8 @@ resetButton.addEventListener('click', () => {
 
     timerDisplay.textContent = minutesDisplay + ':' + secondsDisplay;
     running = false;
+    working = true;
+    sessionFinished = false;
 });
 
 workButtons.forEach(position => {
@@ -217,13 +225,26 @@ function dataCounter(sessionType) {
     if (sessionType == 'work') {
         minuteCounter += minuteCount;
         totalCounter += minuteCount;
-        sessionMinutes.textContent = minuteCounter;
-        totalMinutes.textContent = totalCounter;
+        
+        if (minuteCounter > 60) {
+            sessionMinutes.textContent = Math.floor(minuteCounter / 60) + ' hours and ' + minuteCounter % 60 + ' minutes.'
+        } else {
+            sessionMinutes.textContent = minuteCounter + ' minutes.';
+        }
+        if (totalCounter > 60) {
+            totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hours and ' + totalCounter % 60 + ' minutes.'
+        } else {
+            totalMinutes.textContent = totalCounter + ' minutes.';
+        }
     }
 
     if (sessionType == 'break') {
         totalCounter += breakCount;
-        totalMinutes.textContent = totalCounter;
+        if (totalCounter > 60) {
+            totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hours and ' + totalCounter % 60 + ' minutes.'
+        } else {
+            totalMinutes.textContent = totalCounter + ' minutes.';
+        }
     }
     let workRatio = (minuteCounter / totalCounter) * 100;
     if (workRatio % 1 == 0) {
