@@ -1,5 +1,5 @@
-let test = document.querySelector('#test');
-let testButton = document.querySelector('#test-button');
+let timerDisplay = document.querySelector('#time-display');
+let playPause= document.querySelector('#play-pause');
 let resetButton = document.querySelector('#reset');
 let running = false;
 
@@ -11,14 +11,23 @@ let br = document.querySelector('#break');
 let brSession = br.querySelector('p');
 let brButtons = br.querySelectorAll('button');
 
+let sessionMinutes = document.querySelector('#session-minutes');
+let totalMinutes = document.querySelector('#total-minutes');
+
 let working = true;
 let workButton = true;
 let breakButton = false;
 
+let newSession = true;
 let workTimer = 25;
 let breakTimer = 5;
 let longBreak = 15;
 
+let minuteCount = 0;
+let totalCount = 0;
+
+let minuteCounter = 0;
+let totalCounter = 0;
 let sessionAmt = 0;
 let minutes = 25
 let seconds = 0;
@@ -29,21 +38,29 @@ let pause;
 let minutesDisplay = minutes;
 let secondsDisplay = '00';
 
-test.textContent = minutesDisplay + ':' + secondsDisplay; 
+timerDisplay.textContent = minutesDisplay + ':' + secondsDisplay; 
 
-testButton.addEventListener('click', () => {
+playPause.addEventListener('click', () => {
     if (!running) {
         startTimer();
         pause = false;
+        playPause.textContent = "Pause";
     } else {
         clearInterval(timer);
         running = false;
         pause = true;
+        playPause.textContent = "Start";
     }
 });
 
 function startTimer() {
+    if (newSession) {
+        minuteCount += workTimer;
+        totalCount += workTimer;
+    }
+    
     running = true;
+    newSession = false;
     
     if (!pause) {
         seconds--;
@@ -52,10 +69,11 @@ function startTimer() {
         if (minutes == 0 && seconds < 0) {
             if (working) {
                 if (sessionAmt == 3) {
-                    working = false
+                    working = false;
                     minutes = longBreak;
                     seconds = 0;
                     sessionAmt = 0;
+                    newSession = true;
                 } else {
                     working = false
                     minutes = breakTimer;
@@ -89,13 +107,14 @@ function startTimer() {
         } else {
             secondsDisplay = seconds;
         }
-        test.textContent = minutesDisplay + ':' + secondsDisplay;
+        timerDisplay.textContent = minutesDisplay + ':' + secondsDisplay;
         seconds--;
     }, 1000);
 }
 
 resetButton.addEventListener('click', () => {
     clearInterval(timer);
+    newSession = true;
     minutes = workTimer;
     seconds = 0;
 
@@ -111,7 +130,7 @@ resetButton.addEventListener('click', () => {
         secondsDisplay = seconds;
     }
 
-    test.textContent = minutesDisplay + ':' + secondsDisplay;
+    timerDisplay.textContent = minutesDisplay + ':' + secondsDisplay;
     running = false;
 });
 
@@ -143,14 +162,13 @@ function increment(position) {
             workTimer++;
             workSession.textContent = workTimer;
             if (!running) {
-                minutes = workTimer;
-                if (minutes < 10) {
-                    minutesDisplay = '0' + minutes;
+                if (workTimer < 10) {
+                    minutesDisplay = '0' + workTimer;
                 } else {
-                    minutesDisplay = minutes;
+                    minutesDisplay = workTimer;
                 }
-                if (working) {
-                    test.textContent = minutesDisplay + ':' + secondsDisplay;
+                if (working && newSession) {
+                    timerDisplay.textContent = minutesDisplay + ':' + secondsDisplay;
                 }
             }
         }
@@ -167,14 +185,13 @@ function increment(position) {
             workTimer--;
             workSession.textContent = workTimer;
             if (!running) {
-                minutes = workTimer;
-                if (minutes < 10) {
-                    minutesDisplay = '0' + minutes;
+                if (workTimer < 10) {
+                    minutesDisplay = '0' + workTimer;
                 } else {
-                    minutesDisplay = minutes;
+                    minutesDisplay = workTimer;
                 }
-                if (working) {
-                    test.textContent = minutesDisplay + ':' + secondsDisplay;
+                if (working && newSession) {
+                    timerDisplay.textContent = minutesDisplay + ':' + secondsDisplay;
                 }
             }
         }
@@ -186,3 +203,9 @@ function increment(position) {
         }
     }
 } 
+
+function dataCounter(sessionType) {
+    if (sessionType == 'work') {
+        
+    }
+}

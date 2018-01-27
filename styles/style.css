@@ -45,3 +45,7 @@
     display: inline-block;
     margin-left: 20px;
 }
+
+#buttons button {
+    width: 60px;
+}
