@@ -13,6 +13,7 @@ let brButtons = br.querySelectorAll('button');
 
 let sessionMinutes = document.querySelector('#session-minutes');
 let totalMinutes = document.querySelector('#total-minutes');
+let percentage = document.querySelector('#percentage');
 
 let working = true;
 let workButton = true;
@@ -24,7 +25,7 @@ let breakTimer = 5;
 let longBreak = 15;
 
 let minuteCount = 0;
-let totalCount = 0;
+let breakCount = 0;
 
 let minuteCounter = 0;
 let totalCounter = 0;
@@ -55,8 +56,8 @@ playPause.addEventListener('click', () => {
 
 function startTimer() {
     if (newSession) {
+        minutes = workTimer;
         minuteCount += workTimer;
-        totalCount += workTimer;
     }
     
     running = true;
@@ -71,29 +72,37 @@ function startTimer() {
                 if (sessionAmt == 3) {
                     working = false;
                     minutes = longBreak;
+                    breakCount = longBreak;
                     seconds = 0;
                     sessionAmt = 0;
                     newSession = true;
+                    dataCounter('work');
                 } else {
                     working = false
                     minutes = breakTimer;
+                    breakCount = breakTimer;
                     seconds = 0;
                     sessionAmt++;
+                    dataCounter('work');
                 }
             } else if (!working) {
                 if (sessionAmt == 0) {
                     clearInterval(timer);
                     minutes = 0;
                     seconds = 0;
+                    dataCounter('break');
+                    playPause.textContent = "Start";
                 } else {
                     working = true;
                     minutes = workTimer;
+                    minuteCount = workTimer;
                     seconds = 0;
+                    dataCounter('break');
                 }
             }
         }
         if (seconds < 0) {
-            seconds = 59;
+            seconds = 9;
             minutes--;
         }
         if (minutes < 10) {
@@ -206,6 +215,20 @@ function increment(position) {
 
 function dataCounter(sessionType) {
     if (sessionType == 'work') {
-        
+        minuteCounter += minuteCount;
+        totalCounter += minuteCount;
+        sessionMinutes.textContent = minuteCounter;
+        totalMinutes.textContent = totalCounter;
+    }
+
+    if (sessionType == 'break') {
+        totalCounter += breakCount;
+        totalMinutes.textContent = totalCounter;
+    }
+    let workRatio = (minuteCounter / totalCounter) * 100;
+    if (workRatio % 1 == 0) {
+        percentage.textContent = workRatio + '%';
+    } else {
+        percentage.textContent = workRatio.toFixed(2) + '%';
     }
 }
