@@ -34,6 +34,7 @@ let minutes = 25
 let seconds = 0;
 let timer;
 let pause;
+let button;
 let sessionFinished = false;
 
 let minutesDisplay = minutes;
@@ -73,39 +74,11 @@ function startTimer() {
     timer = setInterval(() => {
         if (minutes == 0 && seconds < 0) {
             if (working) {
-                if (sessionAmt == 3) {
-                    working = false;
-                    minutes = longBreak;
-                    breakCount = longBreak;
-                    seconds = 0;
-                    sessionAmt = 0;
-                    dataCounter('work');
-                } else {
-                    working = false
-                    minutes = breakTimer;
-                    breakCount = breakTimer;
-                    seconds = 0;
-                    sessionAmt++;
-                    dataCounter('work');
-                }
+                endWork(); 
             } else if (!working) {
-                if (sessionAmt == 0) {
-                    clearInterval(timer);
-                    newSession = true;
-                    running = true;
-                    minutes = 0;
-                    seconds = 0;
-                    sessionFinished = true;
-                    dataCounter('break');
-                    playPause.textContent = "Start";
-                } else {
-                    working = true;
-                    minutes = workTimer;
-                    minuteCount = workTimer;
-                    seconds = 0;
-                    dataCounter('break');
-                }
+                endBreak();
             }
+               
         }
         if (seconds < 0) {
             seconds = 59;
@@ -125,6 +98,43 @@ function startTimer() {
         timerDisplay.textContent = minutesDisplay + ':' + secondsDisplay;
         seconds--;
     }, 1000);
+}
+
+function endWork() {
+    if (sessionAmt == 3) {
+        working = false;
+        minutes = longBreak;
+        breakCount = longBreak;
+        seconds = 0;
+        sessionAmt = 0;
+        dataCounter('work');            
+    } else {
+        working = false
+        minutes = breakTimer;
+        breakCount = breakTimer;
+        seconds = 0;
+        sessionAmt++;
+        dataCounter('work');
+    } 
+}
+
+function endBreak() {
+    if (sessionAmt == 0) {
+        clearInterval(timer);
+        newSession = true;
+        running = true;
+        minutes = 0;
+        seconds = 0;
+        sessionFinished = true;
+        dataCounter('break');
+        playPause.textContent = "Start";
+    } else {
+        working = true;
+        minutes = workTimer;
+        minuteCount = workTimer;
+        seconds = 0;
+        dataCounter('break');
+    }
 }
 
 resetButton.addEventListener('click', () => {
@@ -168,58 +178,61 @@ brButtons.forEach(position => {
 });
 
 function increment(position) {
-    let button;
+    button;
     if (workButton) {
         button = document.getElementsByClassName(position)[0];
     } else if (breakButton) {
         button = document.getElementsByClassName(position)[1];
     }
     if (position == 'up') {
-        if (button.parentNode.id == 'work') {
-            workTimer++;
-            workSession.textContent = workTimer;
-            if (!running) {
-                if (workTimer < 10) {
-                    minutesDisplay = '0' + workTimer;
-                } else {
-                    minutesDisplay = workTimer;
-                }
-                if (working && newSession) {
-                    timerDisplay.textContent = minutesDisplay + ':' + secondsDisplay;
-                }
-            }
-        }
-
-        if (button.parentNode.id == 'break') {
-            breakTimer++;
-            brSession.textContent = breakTimer;
-        }
+        direction(position);
     }
 
     if (position == 'down') {
-        if (button.parentNode.id == 'work') {
-            if (workTimer == 1) {return}
-            workTimer--;
-            workSession.textContent = workTimer;
-            if (!running) {
-                if (workTimer < 10) {
-                    minutesDisplay = '0' + workTimer;
-                } else {
-                    minutesDisplay = workTimer;
-                }
-                if (working && newSession) {
-                    timerDisplay.textContent = minutesDisplay + ':' + secondsDisplay;
-                }
-            }
-        }
-
-        if (button.parentNode.id == 'break') {
-            if (breakTimer == 1) {return}
-            breakTimer--;
-            brSession.textContent = breakTimer;
-        }
+        direction(position);
     }
 } 
+
+function direction(position) {
+    if (button.parentNode.id == 'work') {
+        if (position == 'down') {
+            if (workTimer == 1) {return}
+            workDirection(position);
+        } else {
+            workDirection(position);
+        } 
+    }
+
+    if (button.parentNode.id == 'break') {
+        if (position == 'up') {
+            breakTimer++;
+        } else {
+            if (breakTimer == 1) {return}
+            breakTimer--;
+        }
+        brSession.textContent = breakTimer;
+    }
+}
+
+function workDirection(position) {
+    if (position == 'up') {
+        workTimer++;
+    } else {
+        workTimer--;
+    }
+    workSession.textContent = workTimer;
+    if (!running) {
+        if (workTimer < 10) {
+            minutesDisplay = '0' + workTimer;
+        } else {
+            minutesDisplay = workTimer;
+        }
+        
+        if (working && newSession) {
+            timerDisplay.textContent = minutesDisplay + ':' + secondsDisplay;
+        }
+    }
+}
 
 function dataCounter(sessionType) {
     if (sessionType == 'work') {
