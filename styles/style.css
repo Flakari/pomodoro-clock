@@ -1,15 +1,20 @@
+body {
+    background: url('../images/background.png') repeat-y center;
+    background-size: cover;
+}
+
 #display {
     border-radius: 10px;
     margin: auto;
-    width: 220px;
-    height: 140px;
-    background-color: rgb(164, 227, 238);
+    width: 320px;
+    height: 170px;
+    background-color: rgba(226, 226, 226, 0.863);
     text-align: center;
     padding: 2px;
 }
 
 #display p {
-    font-size: 4em;
+    font-size: 5em;
     font-weight: 100;
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     line-height: 0;
@@ -48,4 +53,75 @@
 
 #buttons button {
     width: 60px;
+}
+
+img {
+    width: 40px;
+    opacity: 0.75;
+}
+
+img:hover {
+    opacity: 1;
+}
+
+.up {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: url('../images/up-arrow.png') no-repeat center;
+    background-size: 40px;
+    opacity: 0.75;
+}
+
+.up:hover {
+    opacity: 1;
+}
+
+.down {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: url('../images/down-arrow.png') no-repeat center;
+    background-size: 40px;
+    opacity: 0.75;
+}
+
+.down:hover {
+    opacity: 1;
+}
+
+#session-time p {
+    color: white;
+    margin-top: 20px;
+    margin-bottom: 22px;
+    font-size: 2em;
+    font-weight: 100;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    line-height: 0;
+}
+
+#session-time h2 {
+    color: white;
+    margin-top: 20px;
+    margin-bottom: 22px;
+    font-size: 2.5em;
+    font-weight: 500;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    line-height: 0;
+}
+
+#session-tracker {
+    text-align: center;
+    margin: auto;
+    width: 500px;
+    height: 160px;
+    background-color: white;
+    padding: 5px;
+}
+
+#session-tracker p {
+    font-size: 2em;
+    font-weight: 100;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    line-height: 0.3;
 }
