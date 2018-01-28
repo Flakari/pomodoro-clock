@@ -81,7 +81,7 @@ function startTimer() {
                
         }
         if (seconds < 0) {
-            seconds = 59;
+            seconds = 9;
             minutes--;
         }
         if (minutes < 10) {
@@ -240,23 +240,23 @@ function dataCounter(sessionType) {
         totalCounter += minuteCount;
         
         if (minuteCounter > 60) {
-            sessionMinutes.textContent = Math.floor(minuteCounter / 60) + ' hours and ' + minuteCounter % 60 + ' minutes.'
+            sessionMinutes.textContent = Math.floor(minuteCounter / 60) + ' hours and ' + minuteCounter % 60 + ' minutes'
         } else {
-            sessionMinutes.textContent = minuteCounter + ' minutes.';
+            sessionMinutes.textContent = minuteCounter + ' minutes';
         }
         if (totalCounter > 60) {
-            totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hours and ' + totalCounter % 60 + ' minutes.'
+            totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hours and ' + totalCounter % 60 + ' minutes'
         } else {
-            totalMinutes.textContent = totalCounter + ' minutes.';
+            totalMinutes.textContent = totalCounter + ' minutes';
         }
     }
 
     if (sessionType == 'break') {
         totalCounter += breakCount;
         if (totalCounter > 60) {
-            totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hours and ' + totalCounter % 60 + ' minutes.'
+            totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hours and ' + totalCounter % 60 + ' minutes'
         } else {
-            totalMinutes.textContent = totalCounter + ' minutes.';
+            totalMinutes.textContent = totalCounter + ' minutes';
         }
     }
     let workRatio = (minuteCounter / totalCounter) * 100;

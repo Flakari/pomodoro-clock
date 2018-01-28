@@ -116,12 +116,20 @@ img:hover {
     width: 500px;
     height: 160px;
     background-color: white;
-    padding: 5px;
+    padding: 10px;
 }
 
 #session-tracker p {
-    font-size: 2em;
+    font-size: 1.2em;
     font-weight: 100;
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-    line-height: 0.3;
+    line-height: 1;
+}
+
+#work {
+    padding: 6px 8px 2px 8px;
+}
+
+#break {
+    padding: 6px 8px 2px 8px;
 }
