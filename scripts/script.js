@@ -2,6 +2,7 @@ let timerDisplay = document.querySelector('#time-display');
 let playPause= document.querySelector('#play-pause');
 let resetButton = document.querySelector('#reset');
 let running = false;
+let body = document.querySelector('body');
 
 let work = document.querySelector('#work');
 let workSession = work.querySelector('p');
@@ -49,13 +50,25 @@ playPause.addEventListener('click', () => {
     
     if (!running) {
         startTimer();
+        if (working) {
+            body.classList.add('work-bg');
+            timerDisplay.classList.add('work-active');
+        } else {
+            body.classList.add('break-bg');
+            timerDisplay.classList.add('break-active');
+        }
         pause = false;
         playPause.textContent = "Pause";
     } else {
         clearInterval(timer);
+        if (working) {
+            timerDisplay.classList.remove('work-active');
+        } else {
+            timerDisplay.classList.remove('break-active');
+        }
         running = false;
         pause = true;
-        playPause.textContent = "Start";
+        playPause.textContent = "Resume";
     }
 });
 
@@ -107,6 +120,11 @@ function endWork() {
         breakCount = longBreak;
         seconds = 0;
         sessionAmt = 0;
+        body.classList.remove('work-bg');
+        body.classList.add('break-bg');
+        timerDisplay.classList.remove('work-active');
+        timerDisplay.classList.add('break-active');
+        dataCounter('break');
         dataCounter('work');            
     } else {
         working = false
@@ -114,6 +132,10 @@ function endWork() {
         breakCount = breakTimer;
         seconds = 0;
         sessionAmt++;
+        body.classList.remove('work-bg');
+        body.classList.add('break-bg');
+        timerDisplay.classList.remove('work-active');
+        timerDisplay.classList.add('break-active');
         dataCounter('work');
     } 
 }
@@ -126,6 +148,8 @@ function endBreak() {
         minutes = 0;
         seconds = 0;
         sessionFinished = true;
+        body.classList.remove('break-bg');
+        timerDisplay.classList.remove('break-active');
         dataCounter('break');
         playPause.textContent = "Start";
     } else {
@@ -133,12 +157,26 @@ function endBreak() {
         minutes = workTimer;
         minuteCount = workTimer;
         seconds = 0;
+        body.classList.remove('break-bg');
+        body.classList.add('work-bg');
+        timerDisplay.classList.remove('break-active');
+        timerDisplay.classList.add('work-active');
         dataCounter('break');
     }
 }
 
 resetButton.addEventListener('click', () => {
     clearInterval(timer);
+    
+    playPause.textContent = "Start";
+    
+    if (working) {
+        timerDisplay.classList.remove('work-active');
+        body.classList.remove('work-bg');
+    } else {
+        body.classList.remove('break-bg');
+        timerDisplay.classList.remove('break-active');
+    }
     newSession = true;
     minutes = workTimer;
     seconds = 0;

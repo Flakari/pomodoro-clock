@@ -3,18 +3,43 @@ body {
     background-size: cover;
 }
 
+.work-bg {
+    background: url('../images/background-working.png') repeat-y center;
+    background-size: cover;
+    -webkit-transition: all .5s ease;
+       -moz-transition: all .5s ease;
+        -ms-transition: all .5s ease;
+         -o-transition: all .5s ease;
+            transition: all .5s ease;
+}
+
+.break-bg {
+    background: url('../images/background-break.png') repeat-y center;
+    background-size: cover;
+    -webkit-transition: all .5s ease;
+       -moz-transition: all .5s ease;
+        -ms-transition: all .5s ease;
+         -o-transition: all .5s ease;
+            transition: all .5s ease;
+}
+
+button:active {
+    outline: none;
+}
+
 #display {
     border-radius: 10px;
+    border: 4px black solid;
     margin: auto;
-    width: 320px;
-    height: 170px;
-    background-color: rgba(226, 226, 226, 0.863);
+    width: 60%;
+    height: 200px;
+    background-color: rgb(255, 255, 255);
     text-align: center;
     padding: 2px;
 }
 
 #display p {
-    font-size: 5em;
+    font-size: 6em;
     font-weight: 100;
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     line-height: 0;
@@ -22,15 +47,10 @@ body {
 
 #buttons {
     padding-top: 10px;
-    width: 200px;
+    width: 320px;
     height: 50px;
     margin: auto;
     text-align: center;
-}
-
-#buttons button {
-   margin-right: 6px;
-   margin-left: 15px;
 }
 
 #session-time {
@@ -49,10 +69,6 @@ body {
 #break {
     display: inline-block;
     margin-left: 20px;
-}
-
-#buttons button {
-    width: 60px;
 }
 
 img {
@@ -104,19 +120,41 @@ img:hover {
     color: white;
     margin-top: 20px;
     margin-bottom: 22px;
-    font-size: 2.5em;
+    font-size: 1.5em;
     font-weight: 500;
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     line-height: 0;
 }
 
 #session-tracker {
+    overflow: hidden;
     text-align: center;
     margin: auto;
-    width: 500px;
+    width: 70%;
+    max-width: 500px;
     height: 160px;
-    background-color: white;
+    background-color: rgb(85, 85, 85);
+    color: white;
     padding: 10px;
+    margin-top: 70px;
+}
+
+#stats-top {
+    background-color: rgb(24, 24, 24);
+    width: 110%;
+    max-width: 520px;
+    height: 45px;
+    margin-left: -10px;
+    margin-top: -10px;
+}
+
+#session-tracker #stats-top p {
+    margin-top: 0;
+    text-align: left;
+    line-height: 2;
+    margin-left: 40px;
+    font-size: 1.4em;
+    font-weight: 400;
 }
 
 #session-tracker p {
@@ -132,4 +170,61 @@ img:hover {
 
 #break {
     padding: 6px 8px 2px 8px;
+}
+
+#buttons #play-pause {
+    display: block;
+    width: 300px;
+    height: 45px;
+    margin: auto;
+    background-color: rgb(234, 0, 0);
+    color: white;
+    text-shadow: 1px 1px 2px rgb(107, 0, 0);
+    border-radius: 5px 5px 30px 30px;
+    border: none;
+    border-bottom: 2px rgb(107, 0, 0) solid;
+    border-left: 2px rgb(107, 0, 0) solid;
+    border-right: 2px rgb(107, 0, 0) solid;
+    border-top: 2px rgb(243, 46, 46) solid;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 1.4em;
+}
+
+#buttons #play-pause:active {
+    border-top: 2px rgb(107, 0, 0) solid;
+    border-right: 2px rgb(107, 0, 0) solid;
+    border-left: 2px rgb(107, 0, 0) solid;
+    border-bottom: 2px rgb(243, 46, 46) solid;
+}
+
+#buttons #reset {
+    margin-top: 6px;
+    background-color: rgb(234, 0, 0);
+    width: 200px;
+    height: 35px;
+    color: white;
+    text-shadow: 1px 1px 2px rgb(107, 0, 0);
+    border: none;
+    border-bottom: 2px rgb(107, 0, 0) solid;
+    border-left: 2px rgb(107, 0, 0) solid;
+    border-right: 2px rgb(107, 0, 0) solid;
+    border-top: 2px rgb(243, 46, 46) solid;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 1.2em;
+    border-radius: 4px;
+}
+
+#buttons #reset:active {
+    border-top: 2px rgb(107, 0, 0) solid;
+    border-right: 2px rgb(107, 0, 0) solid;
+    border-left: 2px rgb(107, 0, 0) solid;
+    border-bottom: 2px rgb(243, 46, 46) solid;
+}
+
+.work-active {
+    color: rgb(0, 124, 0);
+}
+
+.break-active {
+    color: rgb(65, 147, 255);
 }
