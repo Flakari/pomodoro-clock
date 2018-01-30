@@ -94,7 +94,7 @@ function startTimer() {
                
         }
         if (seconds < 0) {
-            seconds = 9;
+            seconds = 59;
             minutes--;
         }
         if (minutes < 10) {
