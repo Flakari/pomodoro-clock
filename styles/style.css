@@ -23,6 +23,18 @@ body {
             transition: all .5s ease;
 }
 
+h1 {
+    text-align: center;
+    margin: auto;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-weight: 700;
+    font-size: 5em;
+    color: rgb(230, 0, 0);
+    -webkit-text-stroke: black 2px;
+    font-style: italic;
+    margin-bottom: 30px;
+}
+
 button:active {
     outline: none;
 }
@@ -39,7 +51,7 @@ button:active {
 }
 
 #display p {
-    font-size: 8em;
+    font-size: 9em;
     font-weight: 100;
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     line-height: 0;

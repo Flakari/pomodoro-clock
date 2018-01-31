@@ -16,6 +16,7 @@ let sessionMinutes = document.querySelector('#session-minutes');
 let totalMinutes = document.querySelector('#total-minutes');
 let percentage = document.querySelector('#percentage');
 
+const alarm = new Audio('../sounds/alarm.wave');
 let working = true;
 let workButton = true;
 let breakButton = false;
@@ -125,7 +126,8 @@ function endWork() {
         timerDisplay.classList.remove('work-active');
         timerDisplay.classList.add('break-active');
         dataCounter('break');
-        dataCounter('work');            
+        dataCounter('work');
+        alarm.play();            
     } else {
         working = false
         minutes = breakTimer;
@@ -137,6 +139,7 @@ function endWork() {
         timerDisplay.classList.remove('work-active');
         timerDisplay.classList.add('break-active');
         dataCounter('work');
+        alarm.play();
     } 
 }
 
@@ -152,6 +155,7 @@ function endBreak() {
         timerDisplay.classList.remove('break-active');
         dataCounter('break');
         playPause.textContent = "Start";
+        alarm.play();
     } else {
         working = true;
         minutes = workTimer;
@@ -162,6 +166,7 @@ function endBreak() {
         timerDisplay.classList.remove('break-active');
         timerDisplay.classList.add('work-active');
         dataCounter('break');
+        alarm.play();
     }
 }
 
