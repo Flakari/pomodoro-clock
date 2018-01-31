@@ -12,14 +12,19 @@ let br = document.querySelector('#break');
 let brSession = br.querySelector('p');
 let brButtons = br.querySelectorAll('button');
 
+let rest = document.querySelector('#rest');
+let restSession = rest.querySelector('p');
+let restButtons = rest.querySelectorAll('button');
+
 let sessionMinutes = document.querySelector('#session-minutes');
 let totalMinutes = document.querySelector('#total-minutes');
 let percentage = document.querySelector('#percentage');
 
-const alarm = new Audio('../sounds/alarm.wave');
+const alarm = new Audio('./sounds/alarm.wav');
 let working = true;
 let workButton = true;
 let breakButton = false;
+let restButton = false;
 
 let newSession = true;
 let workTimer = 25;
@@ -86,6 +91,10 @@ function startTimer() {
         seconds--;
     }
     timer = setInterval(() => {
+        if (minutes == 0 && seconds == 0) {
+            alarm.play();
+        }
+        
         if (minutes == 0 && seconds < 0) {
             if (working) {
                 endWork(); 
@@ -126,8 +135,7 @@ function endWork() {
         timerDisplay.classList.remove('work-active');
         timerDisplay.classList.add('break-active');
         dataCounter('break');
-        dataCounter('work');
-        alarm.play();            
+        dataCounter('work');           
     } else {
         working = false
         minutes = breakTimer;
@@ -139,7 +147,6 @@ function endWork() {
         timerDisplay.classList.remove('work-active');
         timerDisplay.classList.add('break-active');
         dataCounter('work');
-        alarm.play();
     } 
 }
 
@@ -155,7 +162,6 @@ function endBreak() {
         timerDisplay.classList.remove('break-active');
         dataCounter('break');
         playPause.textContent = "Start";
-        alarm.play();
     } else {
         working = true;
         minutes = workTimer;
@@ -166,7 +172,6 @@ function endBreak() {
         timerDisplay.classList.remove('break-active');
         timerDisplay.classList.add('work-active');
         dataCounter('break');
-        alarm.play();
     }
 }
 
@@ -208,6 +213,7 @@ workButtons.forEach(position => {
     position.addEventListener('click', function(e) {
         workButton = true;
         breakButton = false;
+        restButton = false;
         increment(e.target.getAttribute('class'));
     });
 });
@@ -216,6 +222,16 @@ brButtons.forEach(position => {
     position.addEventListener('click', function(e) {
         workButton = false;
         breakButton = true;
+        restButton = false;
+        increment(e.target.getAttribute('class'));
+    });
+});
+
+restButtons.forEach(position => {
+    position.addEventListener('click', function(e) {
+        workButton = false;
+        breakButton = false;
+        restButton = true;
         increment(e.target.getAttribute('class'));
     });
 });
@@ -226,7 +242,10 @@ function increment(position) {
         button = document.getElementsByClassName(position)[0];
     } else if (breakButton) {
         button = document.getElementsByClassName(position)[1];
+    } else if (restButton) {
+        button = document.getElementsByClassName(position)[2];
     }
+
     if (position == 'up') {
         direction(position);
     }
@@ -255,6 +274,16 @@ function direction(position) {
         }
         brSession.textContent = breakTimer;
     }
+
+    if (button.parentNode.id == 'rest') {
+        if (position == 'up') {
+            longBreak++
+        } else {
+            if (longBreak == 1) {return}
+            longBreak--
+        }
+        restSession.textContent = longBreak;
+    }
 }
 
 function workDirection(position) {
@@ -278,34 +307,75 @@ function workDirection(position) {
 }
 
 function dataCounter(sessionType) {
+    dataText(sessionType);
+    let workRatio = (minuteCounter / totalCounter) * 100;
+    if (workRatio % 1 == 0) {
+        percentage.textContent = workRatio + '%';
+    } else {
+        percentage.textContent = workRatio.toFixed(2) + '%';
+    }
+}
+
+function dataText(sessionType) {
     if (sessionType == 'work') {
         minuteCounter += minuteCount;
         totalCounter += minuteCount;
         
         if (minuteCounter > 60) {
-            sessionMinutes.textContent = Math.floor(minuteCounter / 60) + ' hours and ' + minuteCounter % 60 + ' minutes'
+            if (Math.floor(minuteCounter / 60) == 1 && minuteCounter % 60 == 1) {
+                sessionMinutes.textContent = Math.floor(minuteCounter / 60) + ' hour and ' + minuteCounter % 60 + ' minute';
+            } else if (Math.floor(minuteCounter / 60) == 1) {
+                sessionMinutes.textContent = Math.floor(minuteCounter / 60) + ' hour and ' + minuteCounter % 60 + ' minutes';
+            } else if (minuteCounter % 60 == 1) {
+                sessionMinutes.textContent = Math.floor(minuteCounter / 60) + ' hour and ' + minuteCounter % 60 + ' minute';
+            } else {
+                sessionMinutes.textContent = Math.floor(minuteCounter / 60) + ' hours and ' + minuteCounter % 60 + ' minutes';
+            }
         } else {
-            sessionMinutes.textContent = minuteCounter + ' minutes';
+            if (minuteCounter == 1) {
+                sessionMinutes.textContent = minuteCounter + ' minute';
+            } else {
+                sessionMinutes.textContent = minuteCounter + ' minutes';
+            }
         }
+
         if (totalCounter > 60) {
-            totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hours and ' + totalCounter % 60 + ' minutes'
+            if (Math.floor(totalCounter / 60) == 1 && totalCounter % 60 == 1) {
+                totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hour and ' + totalCounter % 60 + ' minute';
+            } else if (Math.floor(totalCounter / 60) == 1) {
+                totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hour and ' + totalCounter % 60 + ' minutes';
+            } else if (totalCounter % 60 == 1) {
+                totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hour and ' + totalCounter % 60 + ' minute';
+            } else {
+                totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hours and ' + totalCounter % 60 + ' minutes';
+            }
         } else {
-            totalMinutes.textContent = totalCounter + ' minutes';
+            if (totalCounter == 1) {
+                totalMinutes.textContent = totalCounter + ' minute';
+            } else {
+                totalMinutes.textContent = totalCounter + ' minutes';
+            }
         }
     }
 
     if (sessionType == 'break') {
         totalCounter += breakCount;
         if (totalCounter > 60) {
-            totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hours and ' + totalCounter % 60 + ' minutes'
+            if (Math.floor(totalCounter / 60) == 1 && totalCounter % 60 == 1) {
+                totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hour and ' + totalCounter % 60 + ' minute';
+            } else if (Math.floor(totalCounter / 60) == 1) {
+                totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hour and ' + totalCounter % 60 + ' minutes';
+            } else if (totalCounter % 60 == 1) {
+                totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hour and ' + totalCounter % 60 + ' minute';
+            } else {
+                totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hours and ' + totalCounter % 60 + ' minutes';
+            }
         } else {
-            totalMinutes.textContent = totalCounter + ' minutes';
+            if (totalCounter == 1) {
+                totalMinutes.textContent = totalCounter + ' minute';
+            } else {
+                totalMinutes.textContent = totalCounter + ' minutes';
+            }
         }
-    }
-    let workRatio = (minuteCounter / totalCounter) * 100;
-    if (workRatio % 1 == 0) {
-        percentage.textContent = workRatio + '%';
-    } else {
-        percentage.textContent = workRatio.toFixed(2) + '%';
     }
 }

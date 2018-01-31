@@ -28,7 +28,7 @@ h1 {
     margin: auto;
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     font-weight: 700;
-    font-size: 5em;
+    font-size: 6em;
     color: rgb(230, 0, 0);
     -webkit-text-stroke: black 2px;
     font-style: italic;
@@ -66,14 +66,14 @@ button:active {
 }
 
 #session-time {
-    width: 50%;
+    width: 60%;
     margin: auto;
     text-align: center;
 }
 
 #work {
     display: inline-block;
-    margin-right: 100px;
+    margin-right: 50px;
     border-radius: 30px 30px 0 0;
     background-color: rgb(10, 10, 10);
     width: 150px;
@@ -82,7 +82,16 @@ button:active {
 
 #break {
     display: inline-block;
-    margin-left: 100px;
+    margin-left: 50px;
+    margin-right: 50px;
+    border-radius: 30px 30px 0 0;
+    background-color: rgb(10, 10, 10);
+    width: 150px;
+}
+
+#rest {
+    display: inline-block;
+    margin-left: 50px;
     border-radius: 30px 30px 0 0;
     background-color: rgb(10, 10, 10);
     width: 150px;
@@ -187,6 +196,10 @@ img:hover {
 }
 
 #break {
+    padding: 6px 8px 2px 8px;
+}
+
+#rest {
     padding: 6px 8px 2px 8px;
 }
 
