@@ -73,28 +73,28 @@ button:active {
 
 #work {
     display: inline-block;
-    margin-right: 50px;
+    margin-right: 2%;
     border-radius: 30px 30px 0 0;
     background-color: rgb(10, 10, 10);
-    width: 150px;
+    width: 190px;
 
 }
 
 #break {
     display: inline-block;
-    margin-left: 50px;
-    margin-right: 50px;
+    margin-left: 2%;
+    margin-right: 2%;
     border-radius: 30px 30px 0 0;
     background-color: rgb(10, 10, 10);
-    width: 150px;
+    width: 190px;
 }
 
 #rest {
     display: inline-block;
-    margin-left: 50px;
+    margin-left: 2%;
     border-radius: 30px 30px 0 0;
     background-color: rgb(10, 10, 10);
-    width: 150px;
+    width: 190px;
 }
 
 img {
@@ -258,4 +258,64 @@ img:hover {
 
 .break-active {
     color: rgb(65, 147, 255);
+}
+
+@media only screen and (max-width: 1209px) {
+    body {
+        margin: 0;
+    }
+    
+    #display {
+        width: 80%;
+    }
+
+    #work {
+        margin-right: 2px;
+        width: 29%;
+    }
+    
+    #break {
+        margin-left: 2px;
+        margin-right: 2px;
+        width: 29%;
+    }
+
+    #rest {
+        margin-left: 2px;
+        width: 29%;
+    }
+
+    #session-time {
+        width: 80%;
+    }
+}
+
+@media only screen and (max-width: 684px) {
+    #session-time {
+        width: 95%;
+    }
+    
+    #work {
+        margin-right: 0px;
+        width: 29%;
+    }
+    
+    #break {
+        margin-left: 0px;
+        margin-right: 0px;
+        width: 29%;
+    }
+
+    #rest {
+        margin-left: 0px;
+        width: 29%;
+    }
+
+    #display {
+        width: 95%;
+    }
+
+    h1 {
+        font-size: 5.2em;
+    }
 }
