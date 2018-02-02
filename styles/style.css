@@ -263,6 +263,7 @@ img:hover {
 @media only screen and (max-width: 1209px) {
     body {
         margin: 0;
+        margin-bottom: 5px;
     }
     
     #display {
@@ -291,8 +292,11 @@ img:hover {
 }
 
 @media only screen and (max-width: 684px) {
+    
+    
     #session-time {
         width: 95%;
+        min-width: 472px;
     }
     
     #work {
@@ -313,9 +317,18 @@ img:hover {
 
     #display {
         width: 95%;
+        min-width: 472px;
     }
 
     h1 {
         font-size: 5.2em;
+    }
+
+    #buttons {
+        min-width: 472px;
+    }
+
+    #session-tracker {
+        min-width: 472px;
     }
 }
