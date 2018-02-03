@@ -307,16 +307,6 @@ function workDirection(position) {
 }
 
 function dataCounter(sessionType) {
-    dataText(sessionType);
-    let workRatio = (minuteCounter / totalCounter) * 100;
-    if (workRatio % 1 == 0) {
-        percentage.textContent = workRatio + '%';
-    } else {
-        percentage.textContent = workRatio.toFixed(2) + '%';
-    }
-}
-
-function dataText(sessionType) {
     if (sessionType == 'work') {
         minuteCounter += minuteCount;
         totalCounter += minuteCount;
