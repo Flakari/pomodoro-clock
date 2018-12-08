@@ -134,7 +134,6 @@ function endWork() {
         body.classList.add('break-bg');
         timerDisplay.classList.remove('work-active');
         timerDisplay.classList.add('break-active');
-        dataCounter('break');
         dataCounter('work');           
     } else {
         working = false
