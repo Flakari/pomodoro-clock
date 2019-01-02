@@ -1,7 +1,6 @@
 let timerDisplay = document.querySelector('#time-display');
 let playPause= document.querySelector('#play-pause');
 let resetButton = document.querySelector('#reset');
-let running = false;
 let body = document.querySelector('body');
 
 let work = document.querySelector('#work');
@@ -18,18 +17,11 @@ let restButtons = rest.querySelectorAll('button');
 
 let sessionMinutes = document.querySelector('#session-minutes');
 let totalMinutes = document.querySelector('#total-minutes');
-let percentage = document.querySelector('#percentage');
 
 const alarm = new Audio('./sounds/alarm.wav');
-let working = true;
 let workButton = true;
 let breakButton = false;
 let restButton = false;
-
-let newSession = true;
-let workTimer = 25;
-let breakTimer = 5;
-let longBreak = 15;
 
 let minuteCount = 0;
 let breakCount = 0;
@@ -49,12 +41,121 @@ let secondsDisplay = '00';
 
 timerDisplay.textContent = minutesDisplay + ':' + secondsDisplay; 
 
+const timerSettings = (() => {
+    let workTimer = 25;
+    let breakTimer = 5;
+    let longBreak = 15;
+    let newSession = true;
+    let running = false;
+    let working = true;
+
+    function getWorkTimer() {
+        return workTimer;
+    }
+
+    function changeWorkTimer(direction) {
+        if (direction === 'up') {
+            workTimer += 1;
+        } else {
+            workTimer -= 1;
+        }
+    }
+
+    function getBreakTimer() {
+        return breakTimer;
+    }
+
+    function changeBreakTimer(direction) {
+        if (direction === 'up') {
+            breakTimer += 1;
+        } else {
+            breakTimer -= 1;
+        }
+    }
+
+    function getLongBreak() {
+        return longBreak;
+    }
+
+    function changeLongBreak(direction) {
+        if (direction === 'up') {
+            longBreak += 1;
+        } else {
+            longBreak -= 1;
+        }
+    }
+
+    function isNewSession() {
+        return newSession;
+    }
+
+    function changeNewSession() {
+        if (newSession) {
+            newSession = false;
+        } else {
+            newSession = true;
+        }
+    }
+
+    function isRunning() {
+        return running;
+    }
+
+    function changeRunning() {
+        if (running) {
+            running = false;
+        } else {
+            running = true;
+        }
+    }
+
+    function isWorking() {
+        return working;
+    }
+
+    function changeWorking() {
+        if (working) {
+            working = false;
+        } else {
+            working = true;
+        }
+    }
+
+    return { getWorkTimer, changeWorkTimer, getBreakTimer, changeBreakTimer, getLongBreak, changeLongBreak,
+    isNewSession, changeNewSession, isRunning, changeRunning, isWorking, changeWorking };
+})();
+
+const timerTotals = (() => {
+    let workCounter = 0;
+    let totalCounter = 0;
+
+    function getWorkCounter() {
+        return workCounter;
+    }
+
+    // Function adds to both as work is always counted towards total time
+    function addToWorkAndTotalCounters(amount) {
+        workCounter += amount;
+        totalCounter += amount;
+    }
+
+    function getTotalCounter() {
+        return totalCounter;
+    }
+
+    function addToTotalCounter(amount) {
+        totalCounter += amount;
+    }
+
+    return { getWorkCounter, addToWorkAndTotalCounters, getTotalCounter, addToTotalCounter };
+})();
+
 playPause.addEventListener('click', () => {
     if (sessionFinished) {
         return;
     }
     
-    if (!running) {
+    if (!timerSettings.isRunning()) {
         startTimer();
         if (working) {
             body.classList.add('work-bg');
@@ -72,7 +173,7 @@ playPause.addEventListener('click', () => {
         } else {
             timerDisplay.classList.remove('break-active');
         }
-        running = false;
+        timerSettings.changeRunning();
         pause = true;
         playPause.textContent = "Resume";
     }
@@ -80,11 +181,11 @@ playPause.addEventListener('click', () => {
 
 function startTimer() {
     if (newSession) {
-        minutes = workTimer;
-        minuteCount = workTimer;
+        minutes = timerSettings.getWorkTimer();
+        minuteCount = timerSettings.getWorkTimer();
     }
     
-    running = true;
+    timerSettings.changeRunning();
     newSession = false;
     
     if (!pause) {
@@ -125,9 +226,9 @@ function startTimer() {
 
 function endWork() {
     if (sessionAmt == 3) {
-        working = false;
-        minutes = longBreak;
-        breakCount = longBreak;
+        timerSettings.changeWorking();
+        minutes = timerSettings.getLongBreak();
+        breakCount = timerSettings.getLongBreak();
         seconds = 0;
         sessionAmt = 0;
         body.classList.remove('work-bg');
@@ -136,9 +237,9 @@ function endWork() {
         timerDisplay.classList.add('break-active');
         dataCounter('work');           
     } else {
-        working = false
-        minutes = breakTimer;
-        breakCount = breakTimer;
+        timerSettings.changeWorking();
+        minutes = timerSettings.getBreakTimer();
+        breakCount = timerSettings.getBreakTimer();
         seconds = 0;
         sessionAmt++;
         body.classList.remove('work-bg');
@@ -153,7 +254,7 @@ function endBreak() {
     if (sessionAmt == 0) {
         clearInterval(timer);
         newSession = true;
-        running = true;
+        timerSettings.changeRunning();
         minutes = 0;
         seconds = 0;
         sessionFinished = true;
@@ -163,8 +264,8 @@ function endBreak() {
         playPause.textContent = "Start";
     } else {
         working = true;
-        minutes = workTimer;
-        minuteCount = workTimer;
+        minutes = timerSettings.getWorkTimer();
+        minuteCount = timerSettings.getWorkTimer();
         seconds = 0;
         body.classList.remove('break-bg');
         body.classList.add('work-bg');
@@ -187,7 +288,7 @@ resetButton.addEventListener('click', () => {
         timerDisplay.classList.remove('break-active');
     }
     newSession = true;
-    minutes = workTimer;
+    minutes = timerSettings.getWorkTimer;
     seconds = 0;
 
     if (minutes < 10) {
@@ -203,13 +304,15 @@ resetButton.addEventListener('click', () => {
     }
 
     timerDisplay.textContent = minutesDisplay + ':' + secondsDisplay;
-    running = false;
+    if (timerSettings.isRunning()) {
+        timerSettings.changeRunning();
+    }
     working = true;
     sessionFinished = false;
 });
 
-workButtons.forEach(position => {
-    position.addEventListener('click', function(e) {
+workButtons.forEach((position) => {
+    position.addEventListener('click', (e) => {
         workButton = true;
         breakButton = false;
         restButton = false;
@@ -217,8 +320,8 @@ workButtons.forEach(position => {
     });
 });
 
-brButtons.forEach(position => {
-    position.addEventListener('click', function(e) {
+brButtons.forEach((position) => {
+    position.addEventListener('click', (e) => {
         workButton = false;
         breakButton = true;
         restButton = false;
@@ -226,8 +329,8 @@ brButtons.forEach(position => {
     });
 });
 
-restButtons.forEach(position => {
-    position.addEventListener('click', function(e) {
+restButtons.forEach((position) => {
+    position.addEventListener('click', (e) => {
         workButton = false;
         breakButton = false;
         restButton = true;
@@ -257,7 +360,7 @@ function increment(position) {
 function direction(position) {
     if (button.parentNode.id == 'work') {
         if (position == 'down') {
-            if (workTimer == 1) {return}
+            if (timerSettings.getWorkTimer() == 1) {return}
             workDirection(position);
         } else {
             workDirection(position);
@@ -268,7 +371,7 @@ function direction(position) {
         if (position == 'up') {
             breakTimer++;
         } else {
-            if (breakTimer == 1) {return}
+            if (breakTimer == 1) { return; }
             breakTimer--;
         }
         brSession.textContent = breakTimer;
@@ -278,7 +381,7 @@ function direction(position) {
         if (position == 'up') {
             longBreak++
         } else {
-            if (longBreak == 1) {return}
+            if (longBreak == 1) { return; }
             longBreak--
         }
         restSession.textContent = longBreak;
@@ -286,23 +389,24 @@ function direction(position) {
 }
 
 function workDirection(position) {
-    if (position == 'up') {
-        workTimer++;
-    } else {
-        workTimer--;
-    }
-    workSession.textContent = workTimer;
-    if (!running) {
-        if (workTimer < 10) {
-            minutesDisplay = '0' + workTimer;
+    timerSettings.changeWorkTimer(position);
+
+    workSession.textContent = timerSettings.getWorkTimer();
+    if (!timerSettings.isRunning()) {
+        if (timerSettings.getWorkTimer() < 10) {
+            minutesDisplay = '0' + timerSettings.getWorkTimer();
         } else {
-            minutesDisplay = workTimer;
+            minutesDisplay = timerSettings.getWorkTimer();
         }
         
         if (working && newSession) {
             timerDisplay.textContent = minutesDisplay + ':' + secondsDisplay;
         }
     }
+}
+
+function dataDisplay(sessionType) {
+    
 }
 
 function dataCounter(sessionType) {
