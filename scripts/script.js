@@ -167,38 +167,69 @@ const timerTotals = (() => {
     return { getWorkCounter, addToWorkAndTotalCounters, getTotalCounter, addToTotalCounter };
 })();
 
-playPause.addEventListener('click', () => {
-    if (timerSettings.isSessionFinished()) {
-        return;
+const timerRunner = (() => {
+    let minutes = 0;
+    let seconds = 0;
+
+    function getMinutes() {
+        return minutes;
     }
+
+    function getSeconds() {
+        return seconds;
+    }
+
+    function changeTime(newMinutes) {
+        minutes = newMinutes;
+    }
+
+    function decreaseSeconds() {
+        seconds -= 1;
+        if (seconds < 0) {
+            seconds = 59;
+            decreaseMinutes();
+        }
+    }
+
+    function decreaseMinutes() {
+        minutes -= 1;
+    }
+
+    return { getMinutes, getSeconds, changeTime, decreaseSeconds };
+})();
+
+playPause.addEventListener('click', () => {
+    /*if (timerSettings.isSessionFinished()) {
+        return;
+    }*/
     
     if (!timerSettings.isRunning()) {
-        startTimer();
-        if (working) {
+        //startTimer();
+        if (timerSettings.isWorking()) {
             body.classList.add('work-bg');
             timerDisplay.classList.add('work-active');
         } else {
             body.classList.add('break-bg');
             timerDisplay.classList.add('break-active');
         }
-        pause = false;
+        //pause = false;
         playPause.textContent = "Pause";
     } else {
         clearInterval(timer);
-        if (working) {
+        if (timerSettings.isWorking()) {
             timerDisplay.classList.remove('work-active');
         } else {
             timerDisplay.classList.remove('break-active');
         }
-        timerSettings.changeRunning();
-        pause = true;
+        /*timerSettings.changeRunning();
+        pause = true;*/
         playPause.textContent = "Resume";
     }
 });
 
-function startTimer() {
+/*function startTimer() {
     if (newSession) {
-        timerSettings.changeTimer(newTimer.getNewWorkTimer, newTimer.getNewBreakTimer, newTimer.getNewLongBreak);
+        timerSettings.changeTimer(newTimer.getNewWorkTimer(), newTimer.getNewBreakTimer(), newTimer.getNewLongBreak());
         minutes = timerSettings.getWorkTimer();
         minuteCount = timerSettings.getWorkTimer();
     }
@@ -291,21 +322,24 @@ function endBreak() {
         timerDisplay.classList.add('work-active');
         timeCounter('break');
     }
+}*/
+
+function resetTimer() {
+    timerDisplay.className = '';
+    body.className = '';
+
+    if (!timerSettings.isNewSession()) {
+        timerSettings.changeNewSession();
+    } 
 }
 
 resetButton.addEventListener('click', () => {
     clearInterval(timer);
-    
+    resetTimer();
+
     playPause.textContent = "Start";
     
-    if (working) {
-        timerDisplay.classList.remove('work-active');
-        body.classList.remove('work-bg');
-    } else {
-        body.classList.remove('break-bg');
-        timerDisplay.classList.remove('break-active');
-    }
-    newSession = true;
+    /*
     minutes = timerSettings.getWorkTimer;
     seconds = 0;
 
@@ -326,10 +360,10 @@ resetButton.addEventListener('click', () => {
         timerSettings.changeRunning();
     }
     working = true;
-    sessionFinished = false;
+    sessionFinished = false;*/
 });
 
-workButtons.forEach((position) => {
+/*workButtons.forEach((position) => {
     position.addEventListener('click', (e) => {
         workButton = true;
         breakButton = false;
@@ -421,7 +455,7 @@ function workDirection(position) {
             timerDisplay.textContent = minutesDisplay + ':' + secondsDisplay;
         }
     }
-}
+}*/
 
 function timeCounter(sessionType) {
     if (sessionType === 'work') {
