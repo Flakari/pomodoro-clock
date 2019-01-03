@@ -20,32 +20,26 @@ let workButton = true;
 let breakButton = false;
 let restButton = false;
 
-let minuteCount = 0;
-let breakCount = 0;
-
 let sessionAmt = 1;
-let minutes = 25
-let seconds = 0;
 let timer;
 let pause;
 let button;
 
-let minutesDisplay = minutes;
-let secondsDisplay = '00';
-
-timerDisplay.textContent = minutesDisplay + ':' + secondsDisplay; 
-
 const newTimer = (() => {
     let newWorkTimer = 25;
     let newBreakTimer = 5;
-    let newLongBreak = 15;
+    let newRestTimer = 15;
 
     function getNewWorkTimer() {
         return newWorkTimer;
     }
 
     function changeNewWorkTimer(direction) {
-        direction === 'up' ? newWorkTimer += 1 : newWorkTimer -= 1;
+        if (direction === 'up') {
+            newWorkTimer += 1;
+        } else if (direction === 'down' && newWorkTimer > 1) {
+            newWorkTimer -= 1;
+        }
     }
     
     function getNewBreakTimer() {
@@ -53,26 +47,34 @@ const newTimer = (() => {
     }
 
     function changeNewBreakTimer(direction) {
-        direction === 'up' ? newBreakTimer += 1 : newBreakTimer -= 1;
+        if (direction === 'up') {
+            newBreakTimer += 1;
+        } else if (direction === 'down' && newBreakTimer > 1) {
+            newBreakTimer -= 1;
+        }
     }
 
-    function getNewLongBreak() {
-        return newLongBreak;
+    function getNewRestTimer() {
+        return newRestTimer;
     }
 
-    function changeLongBreak(direction) {
-        direction === 'up' ? newLongBreak += 1 : newLongBreak -= 1;     
+    function changeNewRestTimer(direction) {
+        if (direction === 'up') {
+            newRestTimer += 1;
+        } else if (direction === 'down' && newRestTimer > 1) {
+            newRestTimer -= 1;
+        }    
     }
 
-    return { getNewWorkTimer, changeNewWorkTimer, getNewBreakTimer, changeNewBreakTimer, getNewLongBreak,
-        changeLongBreak };
+    return { getNewWorkTimer, changeNewWorkTimer, getNewBreakTimer, changeNewBreakTimer, getNewRestTimer,
+        changeNewRestTimer };
 })();
 
 const timerSettings = (() => {
     // All timer variables refer to current timer status
     let workTimer = 25;
     let breakTimer = 5;
-    let longBreak = 15;
+    let restTimer = 15;
     let newSession = true;
     let sessionFinished = false;
     let running = false;
@@ -87,30 +89,38 @@ const timerSettings = (() => {
         return breakTimer;
     }
 
-    function getLongBreak() {
-        return longBreak;
+    function getRestTimer() {
+        return restTimer;
     }
 
-    function changeTimer(workTime, breakTime, longBreakTime) {
+    function changeTimer(workTime, breakTime, restTime) {
         workTimer = workTime;
         breakTimer = breakTime;
-        longBreak = longBreakTime;
+        restTimer = restTime;
     }
 
     function isNewSession() {
         return newSession;
     }
 
-    function changeNewSession() {
-        newSession ? newSession = false : newSession = true;
+    function changeNewSession(state) {
+        if (state === true) {
+            newSession = true;
+        } else {
+            newSession = false;
+        }
     }
 
     function isSessionFinished() {
         return newSession;
     }
 
-    function changeSessionFininshed() {
-        sessionFinished ? sessionFinished = false : sessionFinished = true;
+    function changeSessionFinished(state) {
+        if (state === true) {
+            sessionFinished = true;
+        } else {
+            sessionFinished = false;
+        }
     }
 
     function isRunning() {
@@ -137,8 +147,8 @@ const timerSettings = (() => {
         pause ? pause = false : pause = true;
     }
 
-    return { getWorkTimer, getBreakTimer, getLongBreak, changeTimer, isNewSession, changeNewSession,
-        isSessionFinished, changeSessionFininshed, isRunning, changeRunning, isWorking, changeWorking,
+    return { getWorkTimer, getBreakTimer, getRestTimer, changeTimer, isNewSession, changeNewSession,
+        isSessionFinished, changeSessionFinished, isRunning, changeRunning, isWorking, changeWorking,
         isPaused, changePaused };
 })();
 
@@ -205,6 +215,8 @@ playPause.addEventListener('click', () => {
     
     if (!timerSettings.isRunning()) {
         //startTimer();
+        timerSettings.changeNewSession(false);
+        timerSettings.changeRunning();
         if (timerSettings.isWorking()) {
             body.classList.add('work-bg');
             timerDisplay.classList.add('work-active');
@@ -212,6 +224,7 @@ playPause.addEventListener('click', () => {
             body.classList.add('break-bg');
             timerDisplay.classList.add('break-active');
         }
+        timerSettings.changePaused();
         //pause = false;
         playPause.textContent = "Pause";
     } else {
@@ -221,8 +234,10 @@ playPause.addEventListener('click', () => {
         } else {
             timerDisplay.classList.remove('break-active');
         }
-        /*timerSettings.changeRunning();
-        pause = true;*/
+        timerSettings.changePaused();
+        timerSettings.changeRunning();
+        
+        //pause = true;
         playPause.textContent = "Resume";
     }
 });
@@ -324,13 +339,38 @@ function endBreak() {
     }
 }*/
 
+function updateTimerDisplay(state) {
+    let minutesDisplay = '';
+    let secondsDisplay = '';
+
+    if (state === 'running') {
+        minutesDisplay = timerRunner.getMinutes();
+        secondsDisplay = timerRunner.getSeconds();
+    } else if (state === 'new') {
+        minutesDisplay = newTimer.getNewWorkTimer()
+        secondsDisplay = 0;
+    }
+
+    if (minutesDisplay < 10) {
+        minutesDisplay = '0' + minutesDisplay; 
+    }
+
+    if (secondsDisplay < 10) {
+        secondsDisplay = '0' + secondsDisplay;
+    }
+
+    return minutesDisplay + ':' + secondsDisplay;
+}
+
 function resetTimer() {
     timerDisplay.className = '';
     body.className = '';
 
     if (!timerSettings.isNewSession()) {
-        timerSettings.changeNewSession();
-    } 
+        timerSettings.changeNewSession(true);
+    }
+
+    timerDisplay.textContent = updateTimerDisplay('new');
 }
 
 resetButton.addEventListener('click', () => {
@@ -363,7 +403,7 @@ resetButton.addEventListener('click', () => {
     sessionFinished = false;*/
 });
 
-/*workButtons.forEach((position) => {
+workButtons.forEach((position) => {
     position.addEventListener('click', (e) => {
         workButton = true;
         breakButton = false;
@@ -400,62 +440,34 @@ function increment(position) {
         button = document.getElementsByClassName(position)[2];
     }
 
-    if (position == 'up') {
+    if (position === 'up') {
         direction(position);
     }
 
-    if (position == 'down') {
+    if (position === 'down') {
         direction(position);
     }
 } 
 
 function direction(position) {
-    if (button.parentNode.id == 'work') {
-        if (position == 'down') {
-            if (timerSettings.getWorkTimer() == 1) {return}
-            workDirection(position);
-        } else {
-            workDirection(position);
-        } 
+    if (button.parentNode.id === 'work') {
+        newTimer.changeNewWorkTimer(position);
+        workSession.textContent = newTimer.getNewWorkTimer();
+        if (!timerSettings.isRunning() && timerSettings.isNewSession()) {
+            timerDisplay.textContent = updateTimerDisplay('new');
+        }
     }
 
-    if (button.parentNode.id == 'break') {
-        if (position == 'up') {
-            breakTimer++;
-        } else {
-            if (breakTimer == 1) { return; }
-            breakTimer--;
-        }
-        brSession.textContent = breakTimer;
+    if (button.parentNode.id === 'break') {
+        newTimer.changeNewBreakTimer(position);
+        brSession.textContent = newTimer.getNewBreakTimer();
     }
 
-    if (button.parentNode.id == 'rest') {
-        if (position == 'up') {
-            longBreak++
-        } else {
-            if (longBreak == 1) { return; }
-            longBreak--
-        }
-        restSession.textContent = longBreak;
+    if (button.parentNode.id === 'rest') {
+        newTimer.changeNewRestTimer(position);
+        restSession.textContent = newTimer.getNewRestTimer();
     }
 }
-
-function workDirection(position) {
-    timerSettings.changeWorkTimer(position);
-
-    workSession.textContent = timerSettings.getWorkTimer();
-    if (!timerSettings.isRunning()) {
-        if (timerSettings.getWorkTimer() < 10) {
-            minutesDisplay = '0' + timerSettings.getWorkTimer();
-        } else {
-            minutesDisplay = timerSettings.getWorkTimer();
-        }
-        
-        if (working && newSession) {
-            timerDisplay.textContent = minutesDisplay + ':' + secondsDisplay;
-        }
-    }
-}*/
 
 function timeCounter(sessionType) {
     if (sessionType === 'work') {
@@ -463,7 +475,7 @@ function timeCounter(sessionType) {
     } else if (sessionType === 'break') {
         timerTotals.addToTotalCounter(timerSettings.getBreakTimer());
     } else {
-        timerTotals.addToTotalCounter(timerSettings.getLongBreak());
+        timerTotals.addToTotalCounter(timerSettings.getRestTimer());
     }
 
     counterDisplay();
@@ -501,3 +513,5 @@ function counterDisplay() {
         totalMinutes.textContent = `${ minuteTotalCount } ${ minuteTotalString }`;
     }
 }
+
+window.onload = timerDisplay.textContent = updateTimerDisplay('new');
