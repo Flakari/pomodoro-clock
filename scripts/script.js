@@ -20,10 +20,9 @@ let breakButton = false;
 let restButton = false;
 
 let timer;
-let button;
 
 const newTimer = (() => {
-    let newWorkTimer = 1;
+    let newWorkTimer = 25;
     let newBreakTimer = 5;
     let newRestTimer = 15;
 
@@ -71,7 +70,7 @@ const timerSettings = (() => {
     const MAX_SESSION_AMT = 4;
 
     // All timer variables refer to current timer status
-    let workTimer = 1;
+    let workTimer = 25;
     let breakTimer = 5;
     let restTimer = 15;
     let newSession = true;
@@ -284,6 +283,7 @@ function startTimer() {
         if (timerRunner.getMinutes() === 0 && timerRunner.getSeconds() == 0) {
             alarm.play();
         }
+        
         timerDisplay.textContent = updateTimerDisplay('running');
         timerRunner.decreaseSeconds();
         
@@ -294,7 +294,7 @@ function startTimer() {
                 endBreak();
             }       
         }
-    }, 250);
+    }, 1000);
 }
 
 function endWork() {
@@ -313,30 +313,24 @@ function endWork() {
     } 
 }
 
-/*function endBreak() {
-    if (sessionAmt == 1) {
+function endBreak() {
+    if (timerSettings.getSessionAmount() === 1) {
         clearInterval(timer);
-        newSession = true;
-        timerSettings.changeRunning();
-        minutes = 0;
-        seconds = 0;
-        sessionFinished = true;
+        timerSettings.changeNewSession(true);
+        timerSettings.changeRunning(false);
+        timerSettings.changeSessionFinished(true);
         changeTimerStyles('reset');
+        timerRunner.changeTime(0);
         
         timeCounter('rest');
         playPause.textContent = "Start";
     } else {
-        working = true;
-        minutes = timerSettings.getWorkTimer();
-        minuteCount = timerSettings.getWorkTimer();
-        seconds = 0;
-        body.classList.remove('break-bg');
-        body.classList.add('work-bg');
-        timerDisplay.classList.remove('break-active');
-        timerDisplay.classList.add('work-active');
+        timerSettings.changeWorking(true);
+        timerRunner.changeTime(timerSettings.getWorkTimer());
+        changeTimerStyles('work');
         timeCounter('break');
     }
-}*/
+}
 
 function changeTimerStyles(state) {
     if (state !== 'pause') {
@@ -390,6 +384,8 @@ function resetTimer() {
         timerSettings.changeRunning(false);
     }
 
+    timerSettings.changeSessionFinished(false);
+    timerSettings.resetSessionAmount();
     timerDisplay.textContent = updateTimerDisplay('new');
 }
 
@@ -428,7 +424,7 @@ restButtons.forEach((position) => {
 });
 
 function increment(position) {
-    button;
+    let button;
     if (workButton) {
         button = document.getElementsByClassName(position)[0];
     } else if (breakButton) {
@@ -438,15 +434,15 @@ function increment(position) {
     }
 
     if (position === 'up') {
-        direction(position);
+        direction(position, button);
     }
 
     if (position === 'down') {
-        direction(position);
+        direction(position, button);
     }
 } 
 
-function direction(position) {
+function direction(position, button) {
     if (button.parentNode.id === 'work') {
         newTimer.changeNewWorkTimer(position);
         workSession.textContent = newTimer.getNewWorkTimer();
@@ -486,7 +482,7 @@ function counterDisplay() {
     const hourWorkCount = Math.floor(workCounter / 60);
     const hourTotalCount = Math.floor(totalCounter / 60);
     const minuteWorkCount = workCounter % 60;
-    const minuteTotalCount = workCounter % 60;
+    const minuteTotalCount = totalCounter % 60;
 
     let hourWorkString = '';
     let hourTotalString = '';
