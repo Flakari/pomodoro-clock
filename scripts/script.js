@@ -15,18 +15,15 @@ let rest = document.querySelector('#rest');
 let restSession = rest.querySelector('p');
 let restButtons = rest.querySelectorAll('button');
 
-const alarm = new Audio('./sounds/alarm.wav');
 let workButton = true;
 let breakButton = false;
 let restButton = false;
 
-let sessionAmt = 1;
 let timer;
-let pause;
 let button;
 
 const newTimer = (() => {
-    let newWorkTimer = 25;
+    let newWorkTimer = 1;
     let newBreakTimer = 5;
     let newRestTimer = 15;
 
@@ -71,8 +68,10 @@ const newTimer = (() => {
 })();
 
 const timerSettings = (() => {
+    const MAX_SESSION_AMT = 4;
+
     // All timer variables refer to current timer status
-    let workTimer = 25;
+    let workTimer = 1;
     let breakTimer = 5;
     let restTimer = 15;
     let newSession = true;
@@ -80,6 +79,7 @@ const timerSettings = (() => {
     let running = false;
     let working = true;
     let pause = false;
+    let sessionAmount = 1;
 
     function getWorkTimer() {
         return workTimer;
@@ -112,7 +112,7 @@ const timerSettings = (() => {
     }
 
     function isSessionFinished() {
-        return newSession;
+        return sessionFinished;
     }
 
     function changeSessionFinished(state) {
@@ -127,29 +127,57 @@ const timerSettings = (() => {
         return running;
     }
 
-    function changeRunning() {
-        running ? running = false : running = true;
+    function changeRunning(state) {
+        if (state === true) {
+            running = true;
+        } else {
+            running = false;
+        }
     }
 
     function isWorking() {
         return working;
     }
 
-    function changeWorking() {
-        working ? working = false : working = true;
+    function changeWorking(state) {
+        if (state === true) {
+            working = true;
+        } else {
+            working = false;
+        }
     }
 
     function isPaused() {
         return pause;
     }
 
-    function changePaused() {
-        pause ? pause = false : pause = true;
+    function changePaused(state) {
+        if (state === true) {
+            pause = true;
+        } else {
+            pause = false;
+        }
+    }
+
+    function getSessionAmount() {
+        return sessionAmount;
+    }
+
+    function incrementSessionAmount() {
+        sessionAmount += 1;
+    }
+
+    function resetSessionAmount() {
+        sessionAmount = 1;
+    }
+
+    function getMaxSessionAmount() {
+        return MAX_SESSION_AMT;
     }
 
     return { getWorkTimer, getBreakTimer, getRestTimer, changeTimer, isNewSession, changeNewSession,
         isSessionFinished, changeSessionFinished, isRunning, changeRunning, isWorking, changeWorking,
-        isPaused, changePaused };
+        isPaused, changePaused, getSessionAmount, incrementSessionAmount, resetSessionAmount, getMaxSessionAmount };
 })();
 
 const timerTotals = (() => {
@@ -191,13 +219,16 @@ const timerRunner = (() => {
 
     function changeTime(newMinutes) {
         minutes = newMinutes;
+        seconds = 0;
     }
 
     function decreaseSeconds() {
         seconds -= 1;
-        if (seconds < 0) {
+        if (seconds < 0 && minutes > 0) {
             seconds = 59;
-            decreaseMinutes();
+            if (minutes > 0){
+                decreaseMinutes();
+            }
         }
     }
 
@@ -209,112 +240,80 @@ const timerRunner = (() => {
 })();
 
 playPause.addEventListener('click', () => {
-    /*if (timerSettings.isSessionFinished()) {
+    if (timerSettings.isSessionFinished()) {
         return;
-    }*/
+    }
     
     if (!timerSettings.isRunning()) {
-        //startTimer();
+        startTimer();
         timerSettings.changeNewSession(false);
-        timerSettings.changeRunning();
+        timerSettings.changeRunning(true);
+        timerSettings.changePaused(false);
+        
         if (timerSettings.isWorking()) {
-            body.classList.add('work-bg');
-            timerDisplay.classList.add('work-active');
+            changeTimerStyles('work');
         } else {
-            body.classList.add('break-bg');
-            timerDisplay.classList.add('break-active');
+            changeTimerStyles('break');
         }
-        timerSettings.changePaused();
-        //pause = false;
+        
         playPause.textContent = "Pause";
     } else {
         clearInterval(timer);
-        if (timerSettings.isWorking()) {
-            timerDisplay.classList.remove('work-active');
-        } else {
-            timerDisplay.classList.remove('break-active');
-        }
-        timerSettings.changePaused();
+        changeTimerStyles('pause');
+        timerSettings.changePaused(true);
         timerSettings.changeRunning();
         
-        //pause = true;
         playPause.textContent = "Resume";
     }
 });
 
-/*function startTimer() {
-    if (newSession) {
-        timerSettings.changeTimer(newTimer.getNewWorkTimer(), newTimer.getNewBreakTimer(), newTimer.getNewLongBreak());
-        minutes = timerSettings.getWorkTimer();
-        minuteCount = timerSettings.getWorkTimer();
+function startTimer() {
+    if (timerSettings.isNewSession()) {
+        timerSettings.changeTimer(newTimer.getNewWorkTimer(), newTimer.getNewBreakTimer(), newTimer.getNewRestTimer());
+        timerRunner.changeTime(timerSettings.getWorkTimer());
+        timerSettings.changeWorking(true);
     }
     
-    timerSettings.changeRunning();
-    newSession = false;
-    
-    if (!pause) {
-        seconds--;
+    if (!timerSettings.isPaused()) {
+        timerRunner.decreaseSeconds();
     }
+
     timer = setInterval(() => {
-        if (minutes == 0 && seconds == 0) {
+        const alarm = new Audio('./sounds/alarm.wav');
+
+        if (timerRunner.getMinutes() === 0 && timerRunner.getSeconds() == 0) {
             alarm.play();
         }
+        timerDisplay.textContent = updateTimerDisplay('running');
+        timerRunner.decreaseSeconds();
         
-        if (minutes == 0 && seconds < 0) {
-            if (working) {
+        if (timerRunner.getMinutes() === 0 && timerRunner.getSeconds() < 0) {
+            if (timerSettings.isWorking()) {
                 endWork(); 
-            } else if (!working) {
+            } else if (!timerSettings.isWorking()) {
                 endBreak();
-            }
-               
+            }       
         }
-        if (seconds < 0) {
-            seconds = 59;
-            minutes--;
-        }
-        if (minutes < 10) {
-            minutesDisplay = '0' + minutes;
-        } else {
-            minutesDisplay = minutes;
-        }
-
-        if (seconds < 10) {
-            secondsDisplay = '0' + seconds;
-        } else {
-            secondsDisplay = seconds;
-        }
-        timerDisplay.textContent = minutesDisplay + ':' + secondsDisplay;
-        seconds--;
-    }, 1000);
+    }, 250);
 }
 
 function endWork() {
-    if (sessionAmt == 4) {
-        timerSettings.changeWorking();
-        minutes = timerSettings.getLongBreak();
-        breakCount = timerSettings.getLongBreak();
-        seconds = 0;
-        sessionAmt = 1;
-        body.classList.remove('work-bg');
-        body.classList.add('break-bg');
-        timerDisplay.classList.remove('work-active');
-        timerDisplay.classList.add('break-active');
+    if (timerSettings.getSessionAmount() === timerSettings.getMaxSessionAmount()) {
+        timerSettings.changeWorking(false);
+        timerRunner.changeTime(timerSettings.getRestTimer());
+        timerSettings.resetSessionAmount();
+        changeTimerStyles('break');
         timeCounter('work');           
     } else {
-        timerSettings.changeWorking();
-        minutes = timerSettings.getBreakTimer();
-        breakCount = timerSettings.getBreakTimer();
-        seconds = 0;
-        sessionAmt++;
-        body.classList.remove('work-bg');
-        body.classList.add('break-bg');
-        timerDisplay.classList.remove('work-active');
-        timerDisplay.classList.add('break-active');
+        timerSettings.changeWorking(false);
+        timerRunner.changeTime(timerSettings.getBreakTimer());
+        timerSettings.incrementSessionAmount();
+        changeTimerStyles('break');
         timeCounter('work');
     } 
 }
 
-function endBreak() {
+/*function endBreak() {
     if (sessionAmt == 1) {
         clearInterval(timer);
         newSession = true;
@@ -322,9 +321,9 @@ function endBreak() {
         minutes = 0;
         seconds = 0;
         sessionFinished = true;
-        body.classList.remove('break-bg');
-        timerDisplay.classList.remove('break-active');
-        timeCounter('long break');
+        changeTimerStyles('reset');
+        
+        timeCounter('rest');
         playPause.textContent = "Start";
     } else {
         working = true;
@@ -338,6 +337,23 @@ function endBreak() {
         timeCounter('break');
     }
 }*/
+
+function changeTimerStyles(state) {
+    if (state !== 'pause') {
+        timerDisplay.className = '';
+        body.className = '';
+    } 
+    
+    if (state === 'work') {
+        timerDisplay.classList.add('work-active');
+        body.classList.add('work-bg');
+    } else if (state === 'break') {
+        timerDisplay.classList.add('break-active');
+        body.classList.add('break-bg');
+    } else if (state === 'pause') {
+        timerDisplay.className = '';
+    }
+}
 
 function updateTimerDisplay(state) {
     let minutesDisplay = '';
@@ -370,6 +386,10 @@ function resetTimer() {
         timerSettings.changeNewSession(true);
     }
 
+    if (timerSettings.isRunning()) {
+        timerSettings.changeRunning(false);
+    }
+
     timerDisplay.textContent = updateTimerDisplay('new');
 }
 
@@ -378,29 +398,6 @@ resetButton.addEventListener('click', () => {
     resetTimer();
 
     playPause.textContent = "Start";
-    
-    /*
-    minutes = timerSettings.getWorkTimer;
-    seconds = 0;
-
-    if (minutes < 10) {
-        minutesDisplay = '0' + minutes;
-    } else {
-        minutesDisplay = minutes;
-    }
-
-    if (seconds < 10) {
-        secondsDisplay = '0' + seconds;
-    } else {
-        secondsDisplay = seconds;
-    }
-
-    timerDisplay.textContent = minutesDisplay + ':' + secondsDisplay;
-    if (timerSettings.isRunning()) {
-        timerSettings.changeRunning();
-    }
-    working = true;
-    sessionFinished = false;*/
 });
 
 workButtons.forEach((position) => {
