@@ -275,6 +275,7 @@ function startTimer() {
     
     if (!timerSettings.isPaused()) {
         timerRunner.decreaseSeconds();
+        timerDisplay.textContent = updateTimerDisplay('running');
     }
 
     timer = setInterval(() => {
@@ -284,16 +285,16 @@ function startTimer() {
             alarm.play();
         }
         
-        timerDisplay.textContent = updateTimerDisplay('running');
-        timerRunner.decreaseSeconds();
-        
-        if (timerRunner.getMinutes() === 0 && timerRunner.getSeconds() < 0) {
+        if (timerRunner.getMinutes() === 0 && timerRunner.getSeconds() === 0) {
             if (timerSettings.isWorking()) {
                 endWork(); 
             } else if (!timerSettings.isWorking()) {
                 endBreak();
             }       
         }
+
+        timerRunner.decreaseSeconds();
+        timerDisplay.textContent = updateTimerDisplay('running');
     }, 1000);
 }
 
