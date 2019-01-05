@@ -1,7 +1,6 @@
 let timerDisplay = document.querySelector('#time-display');
 let playPause= document.querySelector('#play-pause');
 let resetButton = document.querySelector('#reset');
-let running = false;
 let body = document.querySelector('body');
 
 let work = document.querySelector('#work');
@@ -16,200 +15,390 @@ let rest = document.querySelector('#rest');
 let restSession = rest.querySelector('p');
 let restButtons = rest.querySelectorAll('button');
 
-let sessionMinutes = document.querySelector('#session-minutes');
-let totalMinutes = document.querySelector('#total-minutes');
-let percentage = document.querySelector('#percentage');
-
-const alarm = new Audio('./sounds/alarm.wav');
-let working = true;
 let workButton = true;
 let breakButton = false;
 let restButton = false;
 
-let newSession = true;
-let workTimer = 25;
-let breakTimer = 5;
-let longBreak = 15;
-
-let minuteCount = 0;
-let breakCount = 0;
-
-let minuteCounter = 0;
-let totalCounter = 0;
-let sessionAmt = 0;
-let minutes = 25
-let seconds = 0;
 let timer;
-let pause;
-let button;
-let sessionFinished = false;
 
-let minutesDisplay = minutes;
-let secondsDisplay = '00';
+const newTimer = (() => {
+    let newWorkTimer = 25;
+    let newBreakTimer = 5;
+    let newRestTimer = 15;
 
-timerDisplay.textContent = minutesDisplay + ':' + secondsDisplay; 
+    function getNewWorkTimer() {
+        return newWorkTimer;
+    }
+
+    function changeNewWorkTimer(direction) {
+        if (direction === 'up') {
+            newWorkTimer += 1;
+        } else if (direction === 'down' && newWorkTimer > 1) {
+            newWorkTimer -= 1;
+        }
+    }
+    
+    function getNewBreakTimer() {
+        return newBreakTimer;
+    }
+
+    function changeNewBreakTimer(direction) {
+        if (direction === 'up') {
+            newBreakTimer += 1;
+        } else if (direction === 'down' && newBreakTimer > 1) {
+            newBreakTimer -= 1;
+        }
+    }
+
+    function getNewRestTimer() {
+        return newRestTimer;
+    }
+
+    function changeNewRestTimer(direction) {
+        if (direction === 'up') {
+            newRestTimer += 1;
+        } else if (direction === 'down' && newRestTimer > 1) {
+            newRestTimer -= 1;
+        }    
+    }
+
+    return { getNewWorkTimer, changeNewWorkTimer, getNewBreakTimer, changeNewBreakTimer, getNewRestTimer,
+        changeNewRestTimer };
+})();
+
+const timerSettings = (() => {
+    const MAX_SESSION_AMT = 4;
+
+    // All timer variables refer to current timer status
+    let workTimer = 25;
+    let breakTimer = 5;
+    let restTimer = 15;
+    let newSession = true;
+    let sessionFinished = false;
+    let running = false;
+    let working = true;
+    let pause = false;
+    let sessionAmount = 1;
+
+    function getWorkTimer() {
+        return workTimer;
+    }
+
+    function getBreakTimer() {
+        return breakTimer;
+    }
+
+    function getRestTimer() {
+        return restTimer;
+    }
+
+    function changeTimer(workTime, breakTime, restTime) {
+        workTimer = workTime;
+        breakTimer = breakTime;
+        restTimer = restTime;
+    }
+
+    function isNewSession() {
+        return newSession;
+    }
+
+    function changeNewSession(state) {
+        if (state === true) {
+            newSession = true;
+        } else {
+            newSession = false;
+        }
+    }
+
+    function isSessionFinished() {
+        return sessionFinished;
+    }
+
+    function changeSessionFinished(state) {
+        if (state === true) {
+            sessionFinished = true;
+        } else {
+            sessionFinished = false;
+        }
+    }
+
+    function isRunning() {
+        return running;
+    }
+
+    function changeRunning(state) {
+        if (state === true) {
+            running = true;
+        } else {
+            running = false;
+        }
+    }
+
+    function isWorking() {
+        return working;
+    }
+
+    function changeWorking(state) {
+        if (state === true) {
+            working = true;
+        } else {
+            working = false;
+        }
+    }
+
+    function isPaused() {
+        return pause;
+    }
+
+    function changePaused(state) {
+        if (state === true) {
+            pause = true;
+        } else {
+            pause = false;
+        }
+    }
+
+    function getSessionAmount() {
+        return sessionAmount;
+    }
+
+    function incrementSessionAmount() {
+        sessionAmount += 1;
+    }
+
+    function resetSessionAmount() {
+        sessionAmount = 1;
+    }
+
+    function getMaxSessionAmount() {
+        return MAX_SESSION_AMT;
+    }
+
+    return { getWorkTimer, getBreakTimer, getRestTimer, changeTimer, isNewSession, changeNewSession,
+        isSessionFinished, changeSessionFinished, isRunning, changeRunning, isWorking, changeWorking,
+        isPaused, changePaused, getSessionAmount, incrementSessionAmount, resetSessionAmount, getMaxSessionAmount };
+})();
+
+const timerTotals = (() => {
+    let workCounter = 0;
+    let totalCounter = 0;
+
+    function getWorkCounter() {
+        return workCounter;
+    }
+
+    // Function adds to both as work is always counted towards total time
+    function addToWorkAndTotalCounters(amount) {
+        workCounter += amount;
+        totalCounter += amount;
+    }
+
+    function getTotalCounter() {
+        return totalCounter;
+    }
+
+    function addToTotalCounter(amount) {
+        totalCounter += amount;
+    }
+
+    return { getWorkCounter, addToWorkAndTotalCounters, getTotalCounter, addToTotalCounter };
+})();
+
+const timerRunner = (() => {
+    let minutes = 0;
+    let seconds = 0;
+
+    function getMinutes() {
+        return minutes;
+    }
+
+    function getSeconds() {
+        return seconds;
+    }
+
+    function changeTime(newMinutes) {
+        minutes = newMinutes;
+        seconds = 0;
+    }
+
+    function decreaseSeconds() {
+        seconds -= 1;
+        if (seconds < 0 && minutes > 0) {
+            seconds = 59;
+            if (minutes > 0){
+                decreaseMinutes();
+            }
+        }
+    }
+
+    function decreaseMinutes() {
+        minutes -= 1;
+    }
+
+    return { getMinutes, getSeconds, changeTime, decreaseSeconds };
+})();
 
 playPause.addEventListener('click', () => {
-    if (sessionFinished) {
+    if (timerSettings.isSessionFinished()) {
         return;
     }
     
-    if (!running) {
+    if (!timerSettings.isRunning()) {
         startTimer();
-        if (working) {
-            body.classList.add('work-bg');
-            timerDisplay.classList.add('work-active');
+        timerSettings.changeNewSession(false);
+        timerSettings.changeRunning(true);
+        timerSettings.changePaused(false);
+        
+        if (timerSettings.isWorking()) {
+            changeTimerStyles('work');
         } else {
-            body.classList.add('break-bg');
-            timerDisplay.classList.add('break-active');
+            changeTimerStyles('break');
         }
-        pause = false;
+        
         playPause.textContent = "Pause";
     } else {
         clearInterval(timer);
-        if (working) {
-            timerDisplay.classList.remove('work-active');
-        } else {
-            timerDisplay.classList.remove('break-active');
-        }
-        running = false;
-        pause = true;
+        changeTimerStyles('pause');
+        timerSettings.changePaused(true);
+        timerSettings.changeRunning();
+        
         playPause.textContent = "Resume";
     }
 });
 
 function startTimer() {
-    if (newSession) {
-        minutes = workTimer;
-        minuteCount = workTimer;
+    if (timerSettings.isNewSession()) {
+        timerSettings.changeTimer(newTimer.getNewWorkTimer(), newTimer.getNewBreakTimer(), newTimer.getNewRestTimer());
+        timerRunner.changeTime(timerSettings.getWorkTimer());
+        timerSettings.changeWorking(true);
     }
     
-    running = true;
-    newSession = false;
-    
-    if (!pause) {
-        seconds--;
+    if (!timerSettings.isPaused()) {
+        timerRunner.decreaseSeconds();
+        timerDisplay.textContent = updateTimerDisplay('running');
     }
+
     timer = setInterval(() => {
-        if (minutes == 0 && seconds == 0) {
+        const alarm = new Audio('./sounds/alarm.wav');
+
+        if (timerRunner.getMinutes() === 0 && timerRunner.getSeconds() == 0) {
             alarm.play();
         }
         
-        if (minutes == 0 && seconds < 0) {
-            if (working) {
+        if (timerRunner.getMinutes() === 0 && timerRunner.getSeconds() === 0) {
+            if (timerSettings.isWorking()) {
                 endWork(); 
-            } else if (!working) {
+            } else if (!timerSettings.isWorking()) {
                 endBreak();
-            }
-               
-        }
-        if (seconds < 0) {
-            seconds = 59;
-            minutes--;
-        }
-        if (minutes < 10) {
-            minutesDisplay = '0' + minutes;
-        } else {
-            minutesDisplay = minutes;
+            }       
         }
 
-        if (seconds < 10) {
-            secondsDisplay = '0' + seconds;
-        } else {
-            secondsDisplay = seconds;
-        }
-        timerDisplay.textContent = minutesDisplay + ':' + secondsDisplay;
-        seconds--;
+        timerRunner.decreaseSeconds();
+        timerDisplay.textContent = updateTimerDisplay('running');
     }, 1000);
 }
 
 function endWork() {
-    if (sessionAmt == 3) {
-        working = false;
-        minutes = longBreak;
-        breakCount = longBreak;
-        seconds = 0;
-        sessionAmt = 0;
-        body.classList.remove('work-bg');
-        body.classList.add('break-bg');
-        timerDisplay.classList.remove('work-active');
-        timerDisplay.classList.add('break-active');
-        dataCounter('work');           
+    if (timerSettings.getSessionAmount() === timerSettings.getMaxSessionAmount()) {
+        timerSettings.changeWorking(false);
+        timerRunner.changeTime(timerSettings.getRestTimer());
+        timerSettings.resetSessionAmount();
+        changeTimerStyles('break');
+        timeCounter('work');           
     } else {
-        working = false
-        minutes = breakTimer;
-        breakCount = breakTimer;
-        seconds = 0;
-        sessionAmt++;
-        body.classList.remove('work-bg');
-        body.classList.add('break-bg');
-        timerDisplay.classList.remove('work-active');
-        timerDisplay.classList.add('break-active');
-        dataCounter('work');
+        timerSettings.changeWorking(false);
+        timerRunner.changeTime(timerSettings.getBreakTimer());
+        timerSettings.incrementSessionAmount();
+        changeTimerStyles('break');
+        timeCounter('work');
     } 
 }
 
 function endBreak() {
-    if (sessionAmt == 0) {
+    if (timerSettings.getSessionAmount() === 1) {
         clearInterval(timer);
-        newSession = true;
-        running = true;
-        minutes = 0;
-        seconds = 0;
-        sessionFinished = true;
-        body.classList.remove('break-bg');
-        timerDisplay.classList.remove('break-active');
-        dataCounter('break');
+        timerSettings.changeNewSession(true);
+        timerSettings.changeRunning(false);
+        timerSettings.changeSessionFinished(true);
+        changeTimerStyles('reset');
+        timerRunner.changeTime(0);
+        
+        timeCounter('rest');
         playPause.textContent = "Start";
     } else {
-        working = true;
-        minutes = workTimer;
-        minuteCount = workTimer;
-        seconds = 0;
-        body.classList.remove('break-bg');
-        body.classList.add('work-bg');
-        timerDisplay.classList.remove('break-active');
-        timerDisplay.classList.add('work-active');
-        dataCounter('break');
+        timerSettings.changeWorking(true);
+        timerRunner.changeTime(timerSettings.getWorkTimer());
+        changeTimerStyles('work');
+        timeCounter('break');
     }
+}
+
+function changeTimerStyles(state) {
+    if (state !== 'pause') {
+        timerDisplay.className = '';
+        body.className = '';
+    } 
+    
+    if (state === 'work') {
+        timerDisplay.classList.add('work-active');
+        body.classList.add('work-bg');
+    } else if (state === 'break') {
+        timerDisplay.classList.add('break-active');
+        body.classList.add('break-bg');
+    } else if (state === 'pause') {
+        timerDisplay.className = '';
+    }
+}
+
+function updateTimerDisplay(state) {
+    let minutesDisplay = '';
+    let secondsDisplay = '';
+
+    if (state === 'running') {
+        minutesDisplay = timerRunner.getMinutes();
+        secondsDisplay = timerRunner.getSeconds();
+    } else if (state === 'new') {
+        minutesDisplay = newTimer.getNewWorkTimer()
+        secondsDisplay = 0;
+    }
+
+    if (minutesDisplay < 10) {
+        minutesDisplay = '0' + minutesDisplay; 
+    }
+
+    if (secondsDisplay < 10) {
+        secondsDisplay = '0' + secondsDisplay;
+    }
+
+    return minutesDisplay + ':' + secondsDisplay;
+}
+
+function resetTimer() {
+    timerDisplay.className = '';
+    body.className = '';
+
+    if (!timerSettings.isNewSession()) {
+        timerSettings.changeNewSession(true);
+    }
+
+    if (timerSettings.isRunning()) {
+        timerSettings.changeRunning(false);
+    }
+
+    timerSettings.changeSessionFinished(false);
+    timerSettings.resetSessionAmount();
+    timerDisplay.textContent = updateTimerDisplay('new');
 }
 
 resetButton.addEventListener('click', () => {
     clearInterval(timer);
-    
+    resetTimer();
+
     playPause.textContent = "Start";
-    
-    if (working) {
-        timerDisplay.classList.remove('work-active');
-        body.classList.remove('work-bg');
-    } else {
-        body.classList.remove('break-bg');
-        timerDisplay.classList.remove('break-active');
-    }
-    newSession = true;
-    minutes = workTimer;
-    seconds = 0;
-
-    if (minutes < 10) {
-        minutesDisplay = '0' + minutes;
-    } else {
-        minutesDisplay = minutes;
-    }
-
-    if (seconds < 10) {
-        secondsDisplay = '0' + seconds;
-    } else {
-        secondsDisplay = seconds;
-    }
-
-    timerDisplay.textContent = minutesDisplay + ':' + secondsDisplay;
-    running = false;
-    working = true;
-    sessionFinished = false;
 });
 
-workButtons.forEach(position => {
-    position.addEventListener('click', function(e) {
+workButtons.forEach((position) => {
+    position.addEventListener('click', (e) => {
         workButton = true;
         breakButton = false;
         restButton = false;
@@ -217,8 +406,8 @@ workButtons.forEach(position => {
     });
 });
 
-brButtons.forEach(position => {
-    position.addEventListener('click', function(e) {
+brButtons.forEach((position) => {
+    position.addEventListener('click', (e) => {
         workButton = false;
         breakButton = true;
         restButton = false;
@@ -226,8 +415,8 @@ brButtons.forEach(position => {
     });
 });
 
-restButtons.forEach(position => {
-    position.addEventListener('click', function(e) {
+restButtons.forEach((position) => {
+    position.addEventListener('click', (e) => {
         workButton = false;
         breakButton = false;
         restButton = true;
@@ -236,7 +425,7 @@ restButtons.forEach(position => {
 });
 
 function increment(position) {
-    button;
+    let button;
     if (workButton) {
         button = document.getElementsByClassName(position)[0];
     } else if (breakButton) {
@@ -245,126 +434,78 @@ function increment(position) {
         button = document.getElementsByClassName(position)[2];
     }
 
-    if (position == 'up') {
-        direction(position);
+    if (position === 'up') {
+        direction(position, button);
     }
 
-    if (position == 'down') {
-        direction(position);
+    if (position === 'down') {
+        direction(position, button);
     }
 } 
 
-function direction(position) {
-    if (button.parentNode.id == 'work') {
-        if (position == 'down') {
-            if (workTimer == 1) {return}
-            workDirection(position);
-        } else {
-            workDirection(position);
-        } 
+function direction(position, button) {
+    if (button.parentNode.id === 'work') {
+        newTimer.changeNewWorkTimer(position);
+        workSession.textContent = newTimer.getNewWorkTimer();
+        if (!timerSettings.isRunning() && timerSettings.isNewSession()) {
+            timerDisplay.textContent = updateTimerDisplay('new');
+        }
     }
 
-    if (button.parentNode.id == 'break') {
-        if (position == 'up') {
-            breakTimer++;
-        } else {
-            if (breakTimer == 1) {return}
-            breakTimer--;
-        }
-        brSession.textContent = breakTimer;
+    if (button.parentNode.id === 'break') {
+        newTimer.changeNewBreakTimer(position);
+        brSession.textContent = newTimer.getNewBreakTimer();
     }
 
-    if (button.parentNode.id == 'rest') {
-        if (position == 'up') {
-            longBreak++
-        } else {
-            if (longBreak == 1) {return}
-            longBreak--
-        }
-        restSession.textContent = longBreak;
+    if (button.parentNode.id === 'rest') {
+        newTimer.changeNewRestTimer(position);
+        restSession.textContent = newTimer.getNewRestTimer();
     }
 }
 
-function workDirection(position) {
-    if (position == 'up') {
-        workTimer++;
+function timeCounter(sessionType) {
+    if (sessionType === 'work') {
+        timerTotals.addToWorkAndTotalCounters(timerSettings.getWorkTimer());
+    } else if (sessionType === 'break') {
+        timerTotals.addToTotalCounter(timerSettings.getBreakTimer());
     } else {
-        workTimer--;
+        timerTotals.addToTotalCounter(timerSettings.getRestTimer());
     }
-    workSession.textContent = workTimer;
-    if (!running) {
-        if (workTimer < 10) {
-            minutesDisplay = '0' + workTimer;
-        } else {
-            minutesDisplay = workTimer;
-        }
-        
-        if (working && newSession) {
-            timerDisplay.textContent = minutesDisplay + ':' + secondsDisplay;
-        }
+
+    counterDisplay();
+}
+
+function counterDisplay() {
+    const sessionMinutes = document.querySelector('#session-minutes');
+    const totalMinutes = document.querySelector('#total-minutes');
+    const workCounter = timerTotals.getWorkCounter();
+    const totalCounter = timerTotals.getTotalCounter();
+    const hourWorkCount = Math.floor(workCounter / 60);
+    const hourTotalCount = Math.floor(totalCounter / 60);
+    const minuteWorkCount = workCounter % 60;
+    const minuteTotalCount = totalCounter % 60;
+
+    let hourWorkString = '';
+    let hourTotalString = '';
+    let minuteWorkString = '';
+    let minuteTotalString = '';
+    
+    (hourWorkCount === 1) ? hourWorkString = 'hour' : hourWorkString = 'hours';
+    (hourTotalCount === 1) ? hourTotalString = 'hour' : hourTotalString = 'hours';
+    (minuteWorkCount === 1) ? minuteWorkString = 'minute' : minuteWorkString = 'minutes';
+    (minuteTotalCount === 1) ? minuteTotalString = 'minute' : minuteTotalString = 'minutes';
+
+    if (workCounter > 60) {
+        sessionMinutes.textContent = `${ hourWorkCount } ${ hourWorkString } and ${ minuteWorkCount } ${ minuteWorkString }`;
+    } else {
+        sessionMinutes.textContent = `${ minuteWorkCount } ${ minuteWorkString }`;
+    }
+
+    if (totalCounter > 60) {
+        totalMinutes.textContent = `${ hourTotalCount } ${ hourTotalString } and ${ minuteTotalCount } ${ minuteTotalString }`;
+    } else {
+        totalMinutes.textContent = `${ minuteTotalCount } ${ minuteTotalString }`;
     }
 }
 
-function dataCounter(sessionType) {
-    if (sessionType == 'work') {
-        minuteCounter += minuteCount;
-        totalCounter += minuteCount;
-        
-        if (minuteCounter > 60) {
-            if (Math.floor(minuteCounter / 60) == 1 && minuteCounter % 60 == 1) {
-                sessionMinutes.textContent = Math.floor(minuteCounter / 60) + ' hour and ' + minuteCounter % 60 + ' minute';
-            } else if (Math.floor(minuteCounter / 60) == 1) {
-                sessionMinutes.textContent = Math.floor(minuteCounter / 60) + ' hour and ' + minuteCounter % 60 + ' minutes';
-            } else if (minuteCounter % 60 == 1) {
-                sessionMinutes.textContent = Math.floor(minuteCounter / 60) + ' hour and ' + minuteCounter % 60 + ' minute';
-            } else {
-                sessionMinutes.textContent = Math.floor(minuteCounter / 60) + ' hours and ' + minuteCounter % 60 + ' minutes';
-            }
-        } else {
-            if (minuteCounter == 1) {
-                sessionMinutes.textContent = minuteCounter + ' minute';
-            } else {
-                sessionMinutes.textContent = minuteCounter + ' minutes';
-            }
-        }
-
-        if (totalCounter > 60) {
-            if (Math.floor(totalCounter / 60) == 1 && totalCounter % 60 == 1) {
-                totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hour and ' + totalCounter % 60 + ' minute';
-            } else if (Math.floor(totalCounter / 60) == 1) {
-                totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hour and ' + totalCounter % 60 + ' minutes';
-            } else if (totalCounter % 60 == 1) {
-                totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hour and ' + totalCounter % 60 + ' minute';
-            } else {
-                totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hours and ' + totalCounter % 60 + ' minutes';
-            }
-        } else {
-            if (totalCounter == 1) {
-                totalMinutes.textContent = totalCounter + ' minute';
-            } else {
-                totalMinutes.textContent = totalCounter + ' minutes';
-            }
-        }
-    }
-
-    if (sessionType == 'break') {
-        totalCounter += breakCount;
-        if (totalCounter > 60) {
-            if (Math.floor(totalCounter / 60) == 1 && totalCounter % 60 == 1) {
-                totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hour and ' + totalCounter % 60 + ' minute';
-            } else if (Math.floor(totalCounter / 60) == 1) {
-                totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hour and ' + totalCounter % 60 + ' minutes';
-            } else if (totalCounter % 60 == 1) {
-                totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hour and ' + totalCounter % 60 + ' minute';
-            } else {
-                totalMinutes.textContent = Math.floor(totalCounter / 60) + ' hours and ' + totalCounter % 60 + ' minutes';
-            }
-        } else {
-            if (totalCounter == 1) {
-                totalMinutes.textContent = totalCounter + ' minute';
-            } else {
-                totalMinutes.textContent = totalCounter + ' minutes';
-            }
-        }
-    }
-}
+window.onload = timerDisplay.textContent = updateTimerDisplay('new');
