@@ -267,6 +267,8 @@ playPause.addEventListener('click', () => {
 });
 
 function startTimer() {
+    const alarm = new Audio('./sounds/alarm.wav');
+
     if (timerSettings.isNewSession()) {
         timerSettings.changeTimer(newTimer.getNewWorkTimer(), newTimer.getNewBreakTimer(), newTimer.getNewRestTimer());
         timerRunner.changeTime(timerSettings.getWorkTimer());
@@ -279,8 +281,6 @@ function startTimer() {
     }
 
     timer = setInterval(() => {
-        const alarm = new Audio('./sounds/alarm.wav');
-
         if (timerRunner.getMinutes() === 0 && timerRunner.getSeconds() == 0) {
             alarm.play();
         }
@@ -495,13 +495,13 @@ function counterDisplay() {
     (minuteWorkCount === 1) ? minuteWorkString = 'minute' : minuteWorkString = 'minutes';
     (minuteTotalCount === 1) ? minuteTotalString = 'minute' : minuteTotalString = 'minutes';
 
-    if (workCounter > 60) {
+    if (workCounter >= 60) {
         sessionMinutes.textContent = `${ hourWorkCount } ${ hourWorkString } and ${ minuteWorkCount } ${ minuteWorkString }`;
     } else {
         sessionMinutes.textContent = `${ minuteWorkCount } ${ minuteWorkString }`;
     }
 
-    if (totalCounter > 60) {
+    if (totalCounter >= 60) {
         totalMinutes.textContent = `${ hourTotalCount } ${ hourTotalString } and ${ minuteTotalCount } ${ minuteTotalString }`;
     } else {
         totalMinutes.textContent = `${ minuteTotalCount } ${ minuteTotalString }`;
