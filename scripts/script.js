@@ -293,8 +293,10 @@ function startTimer() {
             }       
         }
 
-        timerRunner.decreaseSeconds();
-        timerDisplay.textContent = updateTimerDisplay('running');
+        if (!timerSettings.isSessionFinished()) {
+            timerRunner.decreaseSeconds();
+            timerDisplay.textContent = updateTimerDisplay('running');
+        }
     }, 1000);
 }
 
