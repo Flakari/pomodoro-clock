@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <title>Pomodoro Clock</title>
     <link href="styles/style.css" type="text/css" rel="stylesheet">
 </head>
+
 <body>
 
     <h1>POMODORO TIMER</h1>
@@ -18,14 +20,16 @@
             <p>25</p>
             <button class="down" aria-label="Work Time Down"></button>
         </div>
-
+        <div id="work-count">
+            <input type="number" id="work-count-input" value="4" min="1" max="10">
+            <label for="work-count-input">Number of Work Sets</label>
+        </div>
         <div id="break">
             <h2>Break</h2>
             <button class="up" aria-label="Break Time Up"></button>
             <p>5</p>
             <button class="down" aria-label="Break Time Down"></button>
         </div>
-
         <div id="rest">
             <h2>Rest</h2>
             <button class="up" aria-label="Rest Time Up"></button>
@@ -37,17 +41,27 @@
         <p id="time-display">25:00</p>
     </div>
     <div id="buttons">
+        <input type="checkbox" id="auto-toggle" checked>
+        <label for="auto-toggle">Auto Advance</label>
         <button id="play-pause">Start</button>
         <button id="reset">Reset</button>
     </div>
 
     <div id="session-tracker">
-        <div id="stats-top"><p>Stats</p></div>
-        <p>You've worked a total of <span id="session-minutes">0 minutes</span> out of <span id="total-minutes">0 minutes</span> using the pomodoro technique.</p>
-        <div id="stats-header"><p>How this Timer Works</p></div>
-        <p>This timer breaks work time down into short intervals, traditionally 25 minutes of work with short 5 minute breaks. After four work sessions, a long break or rest occurs. Restart the timer after the long break to start another four sessions.</p>
+        <div id="stats-top">
+            <p>Stats</p>
+        </div>
+        <p>You've worked a total of <span id="session-minutes">0 minutes</span> out of <span id="total-minutes">0
+                minutes</span> using the pomodoro technique.</p>
+        <div id="stats-header">
+            <p>How this Timer Works</p>
+        </div>
+        <p>This timer breaks work time down into short intervals, traditionally 25 minutes of work with short 5 minute
+            breaks. After four work sessions, a long break or rest occurs. Restart the timer after the long break to
+            start another four sessions.</p>
     </div>
-    
+
     <script type="text/javascript" src="scripts/script.js"></script>
 </body>
+
 </html>

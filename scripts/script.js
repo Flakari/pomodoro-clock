@@ -1,5 +1,6 @@
 let timerDisplay = document.querySelector('#time-display');
-let playPause= document.querySelector('#play-pause');
+let autoToggle = document.querySelector('#auto-toggle');
+let playPause = document.querySelector('#play-pause');
 let resetButton = document.querySelector('#reset');
 let body = document.querySelector('body');
 
@@ -25,29 +26,31 @@ const newTimer = (() => {
     let newWorkTimer = 25;
     let newBreakTimer = 5;
     let newRestTimer = 15;
+    let newSessionAmount = 4;
+
+    function changeTimer(timer, direction) {
+        if (direction === 'up') {
+            return timer += 1;
+        } else if (direction === 'down' && timer > 1) {
+            return timer -= 1;
+        }
+        return timer;
+    }
 
     function getNewWorkTimer() {
         return newWorkTimer;
     }
 
     function changeNewWorkTimer(direction) {
-        if (direction === 'up') {
-            newWorkTimer += 1;
-        } else if (direction === 'down' && newWorkTimer > 1) {
-            newWorkTimer -= 1;
-        }
+        newWorkTimer = changeTimer(newWorkTimer, direction);
     }
-    
+
     function getNewBreakTimer() {
         return newBreakTimer;
     }
 
     function changeNewBreakTimer(direction) {
-        if (direction === 'up') {
-            newBreakTimer += 1;
-        } else if (direction === 'down' && newBreakTimer > 1) {
-            newBreakTimer -= 1;
-        }
+        newBreakTimer = changeTimer(newBreakTimer, direction);
     }
 
     function getNewRestTimer() {
@@ -55,30 +58,27 @@ const newTimer = (() => {
     }
 
     function changeNewRestTimer(direction) {
-        if (direction === 'up') {
-            newRestTimer += 1;
-        } else if (direction === 'down' && newRestTimer > 1) {
-            newRestTimer -= 1;
-        }    
+        newRestTimer = changeTimer(newRestTimer, direction);
     }
 
-    return { getNewWorkTimer, changeNewWorkTimer, getNewBreakTimer, changeNewBreakTimer, getNewRestTimer,
-        changeNewRestTimer };
+    return {
+        getNewWorkTimer, changeNewWorkTimer, getNewBreakTimer, changeNewBreakTimer, getNewRestTimer,
+        changeNewRestTimer
+    };
 })();
 
 const timerSettings = (() => {
-    const MAX_SESSION_AMT = 4;
-
     // All timer variables refer to current timer status
     let workTimer = 25;
     let breakTimer = 5;
     let restTimer = 15;
+    let maxSessionAmount = 4;
     let newSession = true;
     let sessionFinished = false;
     let running = false;
     let working = true;
     let pause = false;
-    let sessionAmount = 1;
+    let sessionAmount = maxSessionAmount;
 
     function getWorkTimer() {
         return workTimer;
@@ -103,11 +103,7 @@ const timerSettings = (() => {
     }
 
     function changeNewSession(state) {
-        if (state === true) {
-            newSession = true;
-        } else {
-            newSession = false;
-        }
+        newSession = state;
     }
 
     function isSessionFinished() {
@@ -115,11 +111,7 @@ const timerSettings = (() => {
     }
 
     function changeSessionFinished(state) {
-        if (state === true) {
-            sessionFinished = true;
-        } else {
-            sessionFinished = false;
-        }
+        sessionFinished = state;
     }
 
     function isRunning() {
@@ -127,11 +119,7 @@ const timerSettings = (() => {
     }
 
     function changeRunning(state) {
-        if (state === true) {
-            running = true;
-        } else {
-            running = false;
-        }
+        running = state;
     }
 
     function isWorking() {
@@ -139,11 +127,7 @@ const timerSettings = (() => {
     }
 
     function changeWorking(state) {
-        if (state === true) {
-            working = true;
-        } else {
-            working = false;
-        }
+        working = state;
     }
 
     function isPaused() {
@@ -151,32 +135,26 @@ const timerSettings = (() => {
     }
 
     function changePaused(state) {
-        if (state === true) {
-            pause = true;
-        } else {
-            pause = false;
-        }
+        pause = state;
     }
 
     function getSessionAmount() {
         return sessionAmount;
     }
 
-    function incrementSessionAmount() {
-        sessionAmount += 1;
+    function decrementSessionAmount() {
+        sessionAmount -= 1;
     }
 
     function resetSessionAmount() {
-        sessionAmount = 1;
+        sessionAmount = maxSessionAmount;
     }
 
-    function getMaxSessionAmount() {
-        return MAX_SESSION_AMT;
-    }
-
-    return { getWorkTimer, getBreakTimer, getRestTimer, changeTimer, isNewSession, changeNewSession,
+    return {
+        getWorkTimer, getBreakTimer, getRestTimer, changeTimer, isNewSession, changeNewSession,
         isSessionFinished, changeSessionFinished, isRunning, changeRunning, isWorking, changeWorking,
-        isPaused, changePaused, getSessionAmount, incrementSessionAmount, resetSessionAmount, getMaxSessionAmount };
+        isPaused, changePaused, getSessionAmount, decrementSessionAmount, resetSessionAmount
+    };
 })();
 
 const timerTotals = (() => {
@@ -225,7 +203,7 @@ const timerRunner = (() => {
         seconds -= 1;
         if (seconds < 0 && minutes > 0) {
             seconds = 59;
-            if (minutes > 0){
+            if (minutes > 0) {
                 decreaseMinutes();
             }
         }
@@ -242,26 +220,26 @@ playPause.addEventListener('click', () => {
     if (timerSettings.isSessionFinished()) {
         return;
     }
-    
+
     if (!timerSettings.isRunning()) {
         startTimer();
         timerSettings.changeNewSession(false);
         timerSettings.changeRunning(true);
         timerSettings.changePaused(false);
-        
+
         if (timerSettings.isWorking()) {
             changeTimerStyles('work');
         } else {
             changeTimerStyles('break');
         }
-        
+
         playPause.textContent = "Pause";
     } else {
         clearInterval(timer);
         changeTimerStyles('pause');
         timerSettings.changePaused(true);
-        timerSettings.changeRunning();
-        
+        timerSettings.changeRunning(false);
+
         playPause.textContent = "Resume";
     }
 });
@@ -274,23 +252,16 @@ function startTimer() {
         timerRunner.changeTime(timerSettings.getWorkTimer());
         timerSettings.changeWorking(true);
     }
-    
+
     if (!timerSettings.isPaused()) {
         timerRunner.decreaseSeconds();
         timerDisplay.textContent = updateTimerDisplay('running');
     }
 
     timer = setInterval(() => {
-        if (timerRunner.getMinutes() === 0 && timerRunner.getSeconds() == 0) {
-            alarm.play();
-        }
-        
         if (timerRunner.getMinutes() === 0 && timerRunner.getSeconds() === 0) {
-            if (timerSettings.isWorking()) {
-                endWork(); 
-            } else if (!timerSettings.isWorking()) {
-                endBreak();
-            }       
+            alarm.play();
+            timerSettings.isWorking() ? endWork() : endBreak();
         }
 
         if (!timerSettings.isSessionFinished()) {
@@ -301,30 +272,27 @@ function startTimer() {
 }
 
 function endWork() {
-    if (timerSettings.getSessionAmount() === timerSettings.getMaxSessionAmount()) {
-        timerSettings.changeWorking(false);
+    timerSettings.changeWorking(false);
+    if (timerSettings.getSessionAmount() === 1) {
         timerRunner.changeTime(timerSettings.getRestTimer());
         timerSettings.resetSessionAmount();
-        changeTimerStyles('break');
-        timeCounter('work');           
     } else {
-        timerSettings.changeWorking(false);
         timerRunner.changeTime(timerSettings.getBreakTimer());
-        timerSettings.incrementSessionAmount();
-        changeTimerStyles('break');
-        timeCounter('work');
-    } 
+        timerSettings.decrementSessionAmount();
+    }
+    changeTimerStyles('break');
+    timeCounter('work');
 }
 
 function endBreak() {
-    if (timerSettings.getSessionAmount() === 1) {
+    if (timerSettings.getSessionAmount() === 0) {
         clearInterval(timer);
         timerSettings.changeNewSession(true);
         timerSettings.changeRunning(false);
         timerSettings.changeSessionFinished(true);
         changeTimerStyles('reset');
         timerRunner.changeTime(0);
-        
+
         timeCounter('rest');
         playPause.textContent = "Start";
     } else {
@@ -339,8 +307,8 @@ function changeTimerStyles(state) {
     if (state !== 'pause') {
         timerDisplay.className = '';
         body.className = '';
-    } 
-    
+    }
+
     if (state === 'work') {
         timerDisplay.classList.add('work-active');
         body.classList.add('work-bg');
@@ -357,18 +325,18 @@ function updateTimerDisplay(state) {
     let secondsDisplay = '';
 
     if (state === 'running') {
-        minutesDisplay = timerRunner.getMinutes();
-        secondsDisplay = timerRunner.getSeconds();
+        minutesDisplay = timerRunner.getMinutes().toString();
+        secondsDisplay = timerRunner.getSeconds().toString();
     } else if (state === 'new') {
-        minutesDisplay = newTimer.getNewWorkTimer()
-        secondsDisplay = 0;
+        minutesDisplay = newTimer.getNewWorkTimer().toString();
+        secondsDisplay = '0';
     }
 
-    if (minutesDisplay < 10) {
-        minutesDisplay = '0' + minutesDisplay; 
+    if (+minutesDisplay < 10) {
+        minutesDisplay = '0' + minutesDisplay;
     }
 
-    if (secondsDisplay < 10) {
+    if (+secondsDisplay < 10) {
         secondsDisplay = '0' + secondsDisplay;
     }
 
@@ -399,32 +367,19 @@ resetButton.addEventListener('click', () => {
     playPause.textContent = "Start";
 });
 
-workButtons.forEach((position) => {
-    position.addEventListener('click', (e) => {
-        workButton = true;
-        breakButton = false;
-        restButton = false;
-        increment(e.target.getAttribute('class'));
-    });
-});
+function changeButtonType(type, position) {
+    workButton = breakButton = restButton = false;
 
-brButtons.forEach((position) => {
-    position.addEventListener('click', (e) => {
-        workButton = false;
-        breakButton = true;
-        restButton = false;
-        increment(e.target.getAttribute('class'));
-    });
-});
+    if (type === 'work') workButton = true;
+    if (type === 'break') breakButton = true;
+    if (type === 'rest') restButton = true;
 
-restButtons.forEach((position) => {
-    position.addEventListener('click', (e) => {
-        workButton = false;
-        breakButton = false;
-        restButton = true;
-        increment(e.target.getAttribute('class'));
-    });
-});
+    increment(position.getAttribute('class'))
+}
+
+workButtons.forEach((position) => position.addEventListener('click', () => changeButtonType('work', position)));
+brButtons.forEach((position) => position.addEventListener('click', () => changeButtonType('break', position)));
+restButtons.forEach((position) => position.addEventListener('click', () => changeButtonType('rest', position)));
 
 function increment(position) {
     let button;
@@ -436,19 +391,13 @@ function increment(position) {
         button = document.getElementsByClassName(position)[2];
     }
 
-    if (position === 'up') {
-        direction(position, button);
-    }
-
-    if (position === 'down') {
-        direction(position, button);
-    }
-} 
+    direction(position, button);
+}
 
 function direction(position, button) {
     if (button.parentNode.id === 'work') {
         newTimer.changeNewWorkTimer(position);
-        workSession.textContent = newTimer.getNewWorkTimer();
+        workSession.textContent = newTimer.getNewWorkTimer().toString();
         if (!timerSettings.isRunning() && timerSettings.isNewSession()) {
             timerDisplay.textContent = updateTimerDisplay('new');
         }
@@ -456,12 +405,12 @@ function direction(position, button) {
 
     if (button.parentNode.id === 'break') {
         newTimer.changeNewBreakTimer(position);
-        brSession.textContent = newTimer.getNewBreakTimer();
+        brSession.textContent = newTimer.getNewBreakTimer().toString();
     }
 
     if (button.parentNode.id === 'rest') {
         newTimer.changeNewRestTimer(position);
-        restSession.textContent = newTimer.getNewRestTimer();
+        restSession.textContent = newTimer.getNewRestTimer().toString();
     }
 }
 
@@ -491,23 +440,25 @@ function counterDisplay() {
     let hourTotalString = '';
     let minuteWorkString = '';
     let minuteTotalString = '';
-    
+
     (hourWorkCount === 1) ? hourWorkString = 'hour' : hourWorkString = 'hours';
     (hourTotalCount === 1) ? hourTotalString = 'hour' : hourTotalString = 'hours';
     (minuteWorkCount === 1) ? minuteWorkString = 'minute' : minuteWorkString = 'minutes';
     (minuteTotalCount === 1) ? minuteTotalString = 'minute' : minuteTotalString = 'minutes';
 
     if (workCounter >= 60) {
-        sessionMinutes.textContent = `${ hourWorkCount } ${ hourWorkString } and ${ minuteWorkCount } ${ minuteWorkString }`;
+        sessionMinutes.textContent = `${hourWorkCount} ${hourWorkString} and ${minuteWorkCount} ${minuteWorkString}`;
     } else {
-        sessionMinutes.textContent = `${ minuteWorkCount } ${ minuteWorkString }`;
+        sessionMinutes.textContent = `${minuteWorkCount} ${minuteWorkString}`;
     }
 
     if (totalCounter >= 60) {
-        totalMinutes.textContent = `${ hourTotalCount } ${ hourTotalString } and ${ minuteTotalCount } ${ minuteTotalString }`;
+        totalMinutes.textContent = `${hourTotalCount} ${hourTotalString} and ${minuteTotalCount} ${minuteTotalString}`;
     } else {
-        totalMinutes.textContent = `${ minuteTotalCount } ${ minuteTotalString }`;
+        totalMinutes.textContent = `${minuteTotalCount} ${minuteTotalString}`;
     }
 }
 
-window.onload = timerDisplay.textContent = updateTimerDisplay('new');
+window.onload = function () {
+    timerDisplay.textContent = updateTimerDisplay('new');
+}
