@@ -8,6 +8,8 @@ let work = document.querySelector('#work');
 let workSession = work.querySelector('p');
 let workButtons = work.querySelectorAll('button');
 
+let workCountInput = document.querySelector('#work-count-input');
+
 let br = document.querySelector('#break');
 let brSession = br.querySelector('p');
 let brButtons = br.querySelectorAll('button');
@@ -61,9 +63,17 @@ const newTimer = (() => {
         newRestTimer = changeTimer(newRestTimer, direction);
     }
 
+    function changeNewSession(amount) {
+        newSessionAmount = amount;
+    }
+
+    function getSessionAmount() {
+        return newSessionAmount;
+    }
+
     return {
         getNewWorkTimer, changeNewWorkTimer, getNewBreakTimer, changeNewBreakTimer, getNewRestTimer,
-        changeNewRestTimer
+        changeNewRestTimer, changeNewSession, getSessionAmount
     };
 })();
 
@@ -78,7 +88,9 @@ const timerSettings = (() => {
     let running = false;
     let working = true;
     let pause = false;
+    let auto = true;
     let sessionAmount = maxSessionAmount;
+    let workingSessionAmount = maxSessionAmount;
 
     function getWorkTimer() {
         return workTimer;
@@ -92,10 +104,11 @@ const timerSettings = (() => {
         return restTimer;
     }
 
-    function changeTimer(workTime, breakTime, restTime) {
+    function changeTimer(workTime, breakTime, restTime, sessionAmt) {
         workTimer = workTime;
         breakTimer = breakTime;
         restTimer = restTime;
+        sessionAmount = workingSessionAmount = sessionAmt;
     }
 
     function isNewSession() {
@@ -138,22 +151,40 @@ const timerSettings = (() => {
         pause = state;
     }
 
+    function changeAuto(state) {
+        auto = state;
+    }
+
+    function getAutoState() {
+        return auto;
+    }
+
     function getSessionAmount() {
         return sessionAmount;
     }
 
     function decrementSessionAmount() {
         sessionAmount -= 1;
+        workingSessionAmount -= 1;
     }
 
     function resetSessionAmount() {
         sessionAmount = maxSessionAmount;
     }
 
+    function forceLastSession() {
+        sessionAmount = 1;
+    }
+
+    function restoreSessionAmount() {
+        sessionAmount = workingSessionAmount;
+    }
+
     return {
         getWorkTimer, getBreakTimer, getRestTimer, changeTimer, isNewSession, changeNewSession,
         isSessionFinished, changeSessionFinished, isRunning, changeRunning, isWorking, changeWorking,
-        isPaused, changePaused, getSessionAmount, decrementSessionAmount, resetSessionAmount
+        isPaused, changePaused, changeAuto, getAutoState, getSessionAmount, decrementSessionAmount,
+        resetSessionAmount, forceLastSession, restoreSessionAmount
     };
 })();
 
@@ -186,6 +217,26 @@ const timerRunner = (() => {
     let minutes = 0;
     let seconds = 0;
 
+    function startTimer() {
+        const alarm = new Audio('./sounds/alarm.wav');
+
+        timer = setInterval(() => {
+            if (timerRunner.getMinutes() === 0 && timerRunner.getSeconds() === 1) {
+                alarm.play();
+                timerSettings.isWorking() ? endWork() : endBreak();
+            }
+
+            if (!timerSettings.isSessionFinished()) {
+                timerRunner.decreaseSeconds();
+                timerDisplay.textContent = updateTimerDisplay('running');
+            }
+        }, 1000);
+    }
+
+    function stopTimer() {
+        clearInterval(timer);
+    }
+
     function getMinutes() {
         return minutes;
     }
@@ -213,7 +264,7 @@ const timerRunner = (() => {
         minutes -= 1;
     }
 
-    return { getMinutes, getSeconds, changeTime, decreaseSeconds };
+    return { startTimer, stopTimer, getMinutes, getSeconds, changeTime, decreaseSeconds };
 })();
 
 playPause.addEventListener('click', () => {
@@ -232,23 +283,33 @@ playPause.addEventListener('click', () => {
         } else {
             changeTimerStyles('break');
         }
-
-        playPause.textContent = "Pause";
     } else {
         clearInterval(timer);
         changeTimerStyles('pause');
         timerSettings.changePaused(true);
         timerSettings.changeRunning(false);
-
-        playPause.textContent = "Resume";
     }
+    changePlayPauseText();
 });
 
-function startTimer() {
-    const alarm = new Audio('./sounds/alarm.wav');
+function changePlayPauseText() {
+    if (timerSettings.isRunning() && !timerSettings.isNewSession()) {
+        playPause.textContent = "Pause";
+    } else if (!timerSettings.isRunning()) {
+        playPause.textContent = "Resume";
+    } else if (timerSettings.isNewSession()) {
+        playPause.textContent = "Start";
+    }
+}
 
+function startTimer() {
     if (timerSettings.isNewSession()) {
-        timerSettings.changeTimer(newTimer.getNewWorkTimer(), newTimer.getNewBreakTimer(), newTimer.getNewRestTimer());
+        timerSettings.changeTimer(
+            newTimer.getNewWorkTimer(),
+            newTimer.getNewBreakTimer(),
+            newTimer.getNewRestTimer(),
+            newTimer.getSessionAmount()
+        );
         timerRunner.changeTime(timerSettings.getWorkTimer());
         timerSettings.changeWorking(true);
     }
@@ -258,17 +319,7 @@ function startTimer() {
         timerDisplay.textContent = updateTimerDisplay('running');
     }
 
-    timer = setInterval(() => {
-        if (timerRunner.getMinutes() === 0 && timerRunner.getSeconds() === 0) {
-            alarm.play();
-            timerSettings.isWorking() ? endWork() : endBreak();
-        }
-
-        if (!timerSettings.isSessionFinished()) {
-            timerRunner.decreaseSeconds();
-            timerDisplay.textContent = updateTimerDisplay('running');
-        }
-    }, 1000);
+    timerRunner.startTimer();
 }
 
 function endWork() {
@@ -300,6 +351,11 @@ function endBreak() {
         timerRunner.changeTime(timerSettings.getWorkTimer());
         changeTimerStyles('work');
         timeCounter('break');
+        if (!timerSettings.getAutoState()) {
+            timerSettings.changeRunning(false);
+            timerRunner.stopTimer();
+            changePlayPauseText();
+        }
     }
 }
 
@@ -380,6 +436,14 @@ function changeButtonType(type, position) {
 workButtons.forEach((position) => position.addEventListener('click', () => changeButtonType('work', position)));
 brButtons.forEach((position) => position.addEventListener('click', () => changeButtonType('break', position)));
 restButtons.forEach((position) => position.addEventListener('click', () => changeButtonType('rest', position)));
+
+workCountInput.addEventListener('change', () => {
+    newTimer.changeNewSession(+workCountInput.value);
+});
+
+autoToggle.addEventListener('change', () => {
+    timerSettings.changeAuto(autoToggle.checked);
+});
 
 function increment(position) {
     let button;
